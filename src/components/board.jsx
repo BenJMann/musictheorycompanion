@@ -1,5 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Chip, DropZone } from './dnd.jsx'
+import { useLang } from '../i18n.jsx'
+
+// Item labels may be a function of the language so they follow the language switch.
+const labelOf = (item, lang) => (typeof item.label === 'function' ? item.label(lang) : item.label)
 
 /**
  * Board state shared by every exercise.
@@ -8,6 +12,7 @@ import { Chip, DropZone } from './dnd.jsx'
  * items: [{ id, label, value, group, color, reusable }]
  *   reusable items stay in the bank after being placed (a palette);
  *   other items can only be in one place at a time.
+ *   label may be a node or a function (lang) => node.
  */
 export function useBoard(slots, items) {
   const [filled, setFilled] = useState({})
@@ -69,8 +74,9 @@ export function useBoard(slots, items) {
 
 /** A box that receives one tile. status: undefined | true | false */
 export function Slot({ board, id, status, placeholder = '', answer, reveal, className = '', renderLabel }) {
+  const { lang, t } = useLang()
   const item = board.itemAt(id)
-  const label = item ? (renderLabel ? renderLabel(item) : item.label) : null
+  const label = item ? (renderLabel ? renderLabel(item, lang) : labelOf(item, lang)) : null
   return (
     <DropZone
       id={id}
@@ -86,8 +92,8 @@ export function Slot({ board, id, status, placeholder = '', answer, reveal, clas
       {item && !board.submitted && (
         <button
           className="slot-remove"
-          title="Remove this tile"
-          aria-label="Remove this tile"
+          title={t('removeTile')}
+          aria-label={t('removeTile')}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation()
@@ -105,16 +111,17 @@ export function Slot({ board, id, status, placeholder = '', answer, reveal, clas
 }
 
 /** The pool of tiles to drag from. */
-export function Bank({ board, title = 'Tile bank', group, className = '' }) {
+export function Bank({ board, title, group, className = '' }) {
+  const { lang, t } = useLang()
   const tiles = group ? board.bank.filter((i) => i.group === group) : board.bank
   return (
     <DropZone id={`bank${group ? ':' + group : ''}`} className={`bank panel ${className}`}>
       <div className="panel-label">{title}</div>
       <div className="bank-tiles">
         {tiles.map((i) => (
-          <Chip key={i.id} payload={{ itemId: i.id, fromSlot: null }} label={i.label} color={i.color} />
+          <Chip key={i.id} payload={{ itemId: i.id, fromSlot: null }} label={labelOf(i, lang)} color={i.color} />
         ))}
-        {tiles.length === 0 && <span className="bank-empty">All tiles placed</span>}
+        {tiles.length === 0 && <span className="bank-empty">{t('allPlaced')}</span>}
       </div>
     </DropZone>
   )

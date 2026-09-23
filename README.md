@@ -3,6 +3,9 @@
 A frontend-only Vite + React app for drilling music theory: scale degrees, interval names,
 the chromatic scale, the circle of fifths and mode formulas.
 
+Available in English and Spanish: the app opens on a language selection screen, and the
+EN / ES switch at the top of every screen changes language at any moment without losing progress.
+
 ## Running
 
 ```bash

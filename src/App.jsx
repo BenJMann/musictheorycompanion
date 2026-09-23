@@ -1,67 +1,68 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import MajorDegrees from './exercises/MajorDegrees.jsx'
 import ChromaticIntervals from './exercises/ChromaticIntervals.jsx'
 import ChromaticScale from './exercises/ChromaticScale.jsx'
 import CircleOrder from './exercises/CircleOrder.jsx'
 import { ModeChart, ModeSingle } from './exercises/ModeFormulas.jsx'
 import { COLORS } from './theory.js'
+import { LANGUAGES, LangContext, LanguageToggle, useLang } from './i18n.jsx'
 
 const BLOCKS = [
   {
-    name: 'Block 1',
-    subtitle: 'Intervals & mode names',
+    name: 'block1',
+    subtitle: 'block1Sub',
     exercises: [
       {
         id: 'major-degrees',
-        title: 'Major tone degrees and mode names',
-        blurb: 'How many semitones is each major scale degree from the root — and which mode starts there?',
+        title: 'exMajorTitle',
+        blurb: 'exMajorBlurb',
         accent: COLORS.cyan,
         Component: MajorDegrees,
       },
       {
         id: 'chromatic-intervals',
-        title: 'Semitones to chromatic intervals',
-        blurb: 'Name every interval in the octave: major, minor, perfect, augmented or diminished.',
+        title: 'exChromIntTitle',
+        blurb: 'exChromIntBlurb',
         accent: COLORS.violet,
         Component: ChromaticIntervals,
       },
     ],
   },
   {
-    name: 'Block 2',
-    subtitle: 'Notes in order',
+    name: 'block2',
+    subtitle: 'block2Sub',
     exercises: [
       {
         id: 'chromatic-scale',
-        title: 'The Chromatic Scale',
-        blurb: 'Put all 12 semitones in order, placing the sharps in the right spots. Beware the decoy notes.',
+        title: 'exChromScaleTitle',
+        blurb: 'exChromScaleBlurb',
         accent: COLORS.magenta,
         Component: ChromaticScale,
       },
     ],
   },
   {
-    name: 'Block 3',
-    subtitle: 'The circle of fifths & mode formulas',
+    name: 'block3',
+    subtitle: 'block3Sub',
     exercises: [
       {
         id: 'circle-order',
-        title: 'Becoming familiar with the order of the circle of fifths',
-        blurb: 'Drag the jumbled interval names into their places around the circle.',
+        title: 'exCircleTitle',
+        blurb: 'exCircleBlurb',
         accent: COLORS.lime,
         Component: CircleOrder,
       },
       {
         id: 'mode-chart',
-        title: 'The mode formulas through the circle of fifths',
-        blurb: 'Complete the mode chart one row at a time, dragging intervals from the circle.',
+        title: 'exModeChartTitle',
+        blurb: 'exModeChartBlurb',
         accent: COLORS.amber,
         Component: ModeChart,
       },
       {
         id: 'mode-single',
-        title: 'Individual mode formula practice',
-        blurb: 'One mode, no chart. Build its formula from the circle of fifths.',
+        title: 'exModeSingleTitle',
+        blurb: 'exModeSingleBlurb',
         accent: COLORS.coral,
         Component: ModeSingle,
       },
@@ -70,6 +71,64 @@ const BLOCKS = [
 ]
 
 export default function App() {
+  // No language yet means the language selection screen is shown first.
+  const [lang, setLang] = useState(null)
+  useEffect(() => {
+    if (lang) document.documentElement.lang = lang
+  }, [lang])
+  return (
+    <LangContext.Provider value={{ lang: lang ?? 'en', setLang }}>
+      {lang ? (
+        <>
+          <div className="topbar">
+            <LanguageToggle />
+          </div>
+          <Main />
+        </>
+      ) : (
+        <LanguageSelect onChoose={setLang} />
+      )}
+    </LangContext.Provider>
+  )
+}
+
+function LanguageSelect({ onChoose }) {
+  return (
+    <div className="lang-select">
+      <div className="logo logo-big" aria-hidden>
+        <span className="logo-dot" />
+      </div>
+      <h1 className="app-title">
+        Music theory practice companion
+        <span className="lang-select-alt">Compañero de práctica de teoría musical</span>
+      </h1>
+      <p className="lang-select-prompt">
+        Choose your language <span className="muted">·</span> Elige tu idioma
+      </p>
+      <div className="lang-select-options">
+        {LANGUAGES.map((l, i) => (
+          <button
+            key={l.code}
+            className="lang-card"
+            style={{ '--accent': i === 0 ? COLORS.cyan : COLORS.magenta }}
+            onClick={() => onChoose(l.code)}
+          >
+            <span className="lang-card-code">{l.short}</span>
+            <span className="lang-card-name">{l.name}</span>
+          </button>
+        ))}
+      </div>
+      <p className="lang-select-note">
+        You can switch at any time with the button at the top of the screen.
+        <br />
+        Puedes cambiarlo en cualquier momento con el botón de la parte superior.
+      </p>
+    </div>
+  )
+}
+
+function Main() {
+  const { t } = useLang()
   const [current, setCurrent] = useState(null)
 
   if (current) {
@@ -79,7 +138,7 @@ export default function App() {
       <div className="app">
         <Component
           onBack={() => setCurrent(null)}
-          meta={{ title: current.title, block: `${block.name} · ${block.subtitle}`, accent: current.accent }}
+          meta={{ title: t(current.title), block: `${t(block.name)} · ${t(block.subtitle)}`, accent: current.accent }}
         />
       </div>
     )
@@ -93,8 +152,8 @@ export default function App() {
           <span className="logo-dot" />
         </div>
         <div>
-          <h1 className="app-title">Music theory practice companion</h1>
-          <p className="app-subtitle">Choose an exercise to start practising.</p>
+          <h1 className="app-title">{t('appTitle')}</h1>
+          <p className="app-subtitle">{t('appSubtitle')}</p>
         </div>
         <div className="meter" aria-hidden>
           {Array.from({ length: 16 }, (_, i) => (
@@ -107,8 +166,8 @@ export default function App() {
         {BLOCKS.map((b) => (
           <section key={b.name} className="menu-block">
             <div className="menu-block-head">
-              <span className="block-tag">{b.name}</span>
-              <span className="menu-block-sub">{b.subtitle}</span>
+              <span className="block-tag">{t(b.name)}</span>
+              <span className="menu-block-sub">{t(b.subtitle)}</span>
             </div>
             <div className="menu-tracks">
               {b.exercises.map((ex) => {
@@ -122,8 +181,8 @@ export default function App() {
                   >
                     <span className="track-num">{String(n).padStart(2, '0')}</span>
                     <span className="track-body">
-                      <span className="track-title">{ex.title}</span>
-                      <span className="track-blurb">{ex.blurb}</span>
+                      <span className="track-title">{t(ex.title)}</span>
+                      <span className="track-blurb">{t(ex.blurb)}</span>
                     </span>
                     <span className="track-play" aria-hidden>
                       ▶

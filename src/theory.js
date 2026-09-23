@@ -46,15 +46,18 @@ export const NOTE_BANK = [
   'C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'E#', 'Fb', 'F', 'F#', 'Gb',
   'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B', 'B#', 'Cb',
 ]
-export const prettyNote = (n) => n.replace('#', '♯').replace(/^([A-G])b$/, '$1♭')
+const SOLFEGE = { C: 'Do', D: 'Re', E: 'Mi', F: 'Fa', G: 'Sol', A: 'La', B: 'Si' }
+// Spanish uses fixed-do note names (Do, Re, Mi …).
+export const prettyNote = (n, lang = 'en') =>
+  (lang === 'es' ? SOLFEGE[n[0]] : n[0]) + (n[1] === '#' ? '♯' : n[1] === 'b' ? '♭' : '')
 
 // Scale-degree intervals. "tt" is the tritone, written ♭5 or ♯4.
 export const INTERVAL_LABELS = {
   1: '1', b2: '♭2', 2: '2', b3: '♭3', 3: '3', 4: '4', tt: '♭5/♯4',
   5: '5', b6: '♭6', 6: '6', b7: '♭7', 7: '7',
 }
-// Clockwise around the circle of fifths, starting at the top.
-export const CIRCLE_ORDER = ['4', '1', '5', '2', '6', '3', '7', 'tt', 'b2', 'b6', 'b3', 'b7']
+// Clockwise around the circle of fifths, starting with 1 at the top.
+export const CIRCLE_ORDER = ['1', '5', '2', '6', '3', '7', 'tt', 'b2', 'b6', 'b3', 'b7', '4']
 
 // Label for an interval in a given formula position (index 3 is the 4th, index 4 the 5th).
 export const intervalLabelAt = (value, index) =>
@@ -74,3 +77,40 @@ export const MODES = [
 // Colour for each interval tile: naturals cool, flats/tritone hot.
 export const intervalColor = (v) =>
   v === 'tt' ? COLORS.coral : v.startsWith('b') ? COLORS.magenta : v === '1' ? COLORS.lime : COLORS.cyan
+
+/* ───────── Spanish names ───────── */
+
+const MODE_ES = {
+  Ionian: 'Jónico',
+  Dorian: 'Dórico',
+  Phrygian: 'Frigio',
+  Lydian: 'Lidio',
+  Mixolydian: 'Mixolidio',
+  Aeolian: 'Eólico',
+  Locrian: 'Locrio',
+}
+export const modeName = (m, lang) => (lang === 'es' ? MODE_ES[m] : m)
+
+const DEGREE_NAME_ES = {
+  1: 'Tónica / Unísono',
+  2: '2ª mayor',
+  3: '3ª mayor',
+  4: '4ª justa',
+  5: '5ª justa',
+  6: '6ª mayor',
+  7: '7ª mayor',
+}
+export const degreeName = (d, lang) => (lang === 'es' ? DEGREE_NAME_ES[d.degree] : d.name)
+
+const QUALITY_ES = { Perfect: 'Justa', Major: 'Mayor', Minor: 'Menor', Augmented: 'Aumentada', Diminished: 'Disminuida' }
+const NUMBER_ES = {
+  Unison: 'Unísono', '2nd': '2ª', '3rd': '3ª', '4th': '4ª', '5th': '5ª', '6th': '6ª', '7th': '7ª', Octave: 'Octava',
+}
+export const qualityName = (q, lang) => (lang === 'es' ? QUALITY_ES[q] : q)
+export const numberName = (n, lang) => (lang === 'es' ? NUMBER_ES[n] : n)
+// Full interval name: "Minor 3rd" in English, "3ª menor" in Spanish (unison is masculine: "Unísono justo").
+export const intervalName = (q, n, lang) => {
+  if (lang !== 'es') return `${q} ${n}`
+  const quality = n === 'Unison' && q === 'Perfect' ? 'justo' : QUALITY_ES[q].toLowerCase()
+  return `${NUMBER_ES[n]} ${quality}`
+}

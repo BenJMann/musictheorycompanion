@@ -3,7 +3,8 @@ import { DndProvider } from '../components/dnd.jsx'
 import { Slot, shuffle, useBoard } from '../components/board.jsx'
 import { ActionBar, ExerciseShell } from '../components/Shell.jsx'
 import { CirclePalette, intervalItems } from '../components/Circle.jsx'
-import { intervalColor, intervalLabelAt, MODES } from '../theory.js'
+import { intervalColor, intervalLabelAt, modeName, MODES } from '../theory.js'
+import { useLang } from '../i18n.jsx'
 
 const DEGREES = ['1', '2', '3', '4', '5', '6', '7']
 
@@ -35,20 +36,37 @@ function useFormulaBoard(modeIndex) {
   return { board, results, score: { correct, total: slots.length } }
 }
 
-const formulaSteps = (
-  <>
-    <li>
-      Drag intervals from the <strong>circle of fifths</strong> (on the right — or below, on small screens) into the seven empty boxes, in scale order —
-      the box labels (1, 2, 3 …) tell you which degree goes where.
-    </li>
-    <li>
-      Every formula starts on <strong>1</strong>. For each degree, decide whether it is natural or flattened (♭). The
-      only sharp you'll need is <strong>♯4</strong> — use the <strong>♭5/♯4</strong> tile for it, and for ♭5 too.
-      Example of the format: a formula that starts <em>1 ♭2 …</em> has a flattened second.
-    </li>
-    <li>The circle's tiles never run out, so use any tile as often as you need.</li>
-  </>
-)
+const FORMULA_STEPS = {
+  en: (
+    <>
+      <li>
+        Drag intervals from the <strong>circle of fifths</strong> (on the right — or below, on small screens) into the
+        seven empty boxes, in scale order — the box labels (1, 2, 3 …) tell you which degree goes where.
+      </li>
+      <li>
+        Every formula starts on <strong>1</strong>. For each degree, decide whether it is natural or flattened (♭). The
+        only sharp you'll need is <strong>♯4</strong> — use the <strong>♭5/♯4</strong> tile for it, and for ♭5 too.
+        Example of the format: a formula that starts <em>1 ♭2 …</em> has a flattened second.
+      </li>
+      <li>The circle's tiles never run out, so use any tile as often as you need.</li>
+    </>
+  ),
+  es: (
+    <>
+      <li>
+        Arrastra intervalos desde el <strong>círculo de quintas</strong> (a la derecha, o debajo en pantallas
+        pequeñas) a las siete casillas vacías, en el orden de la escala: las etiquetas de las casillas (1, 2, 3 …) te
+        indican qué grado va en cada una.
+      </li>
+      <li>
+        Todas las fórmulas empiezan en <strong>1</strong>. Para cada grado, decide si es natural o bemol (♭). El único
+        sostenido que necesitarás es el <strong>♯4</strong>: usa la ficha <strong>♭5/♯4</strong> para él, y también
+        para el ♭5. Ejemplo del formato: una fórmula que empieza <em>1 ♭2 …</em> tiene la segunda bemol.
+      </li>
+      <li>Las fichas del círculo nunca se agotan, así que usa cualquiera tantas veces como necesites.</li>
+    </>
+  ),
+}
 
 /* ───────────── Exercise 3.2: the whole chart, one empty row at a time ───────────── */
 
@@ -69,20 +87,35 @@ export function ModeChart({ onBack, meta }) {
     setRound((r) => r + 1)
   }
 
-  const instructions = (
-    <ol>
-      <li>
-        The chart lists all seven modes in <strong>circle-of-fifths order</strong>, from the brightest (Lydian) to the
-        darkest (Locrian). Every row is filled in except the <strong>one glowing row</strong> — that's the one you
-        complete.
-      </li>
-      {formulaSteps}
-      <li>
-        Press <strong>Submit</strong> to check the row, then <strong>Next mode</strong> to empty a different row. Work
-        through all seven.
-      </li>
-    </ol>
-  )
+  const { lang, t } = useLang()
+  const instructions =
+    lang === 'es' ? (
+      <ol>
+        <li>
+          La tabla muestra los siete modos en el <strong>orden del círculo de quintas</strong>, del más brillante
+          (Lidio) al más oscuro (Locrio). Todas las filas están completas excepto <strong>la fila que brilla</strong>:
+          esa es la que tienes que completar.
+        </li>
+        {FORMULA_STEPS.es}
+        <li>
+          Pulsa <strong>Enviar</strong> para comprobar la fila y después <strong>Siguiente modo</strong> para vaciar
+          otra fila. Completa los siete.
+        </li>
+      </ol>
+    ) : (
+      <ol>
+        <li>
+          The chart lists all seven modes in <strong>circle-of-fifths order</strong>, from the brightest (Lydian) to
+          the darkest (Locrian). Every row is filled in except the <strong>one glowing row</strong> — that's the one
+          you complete.
+        </li>
+        {FORMULA_STEPS.en}
+        <li>
+          Press <strong>Submit</strong> to check the row, then <strong>Next mode</strong> to empty a different row.
+          Work through all seven.
+        </li>
+      </ol>
+    )
 
   return (
     <ExerciseShell
@@ -90,7 +123,7 @@ export function ModeChart({ onBack, meta }) {
       onBack={onBack}
       instructions={instructions}
       toolbar={
-        <div className="progress-pips" title="Modes completed">
+        <div className="progress-pips" title={t('modesCompleted')}>
           {queue.map((m, i) => (
             <span key={m} className={`pip ${i < pos ? 'pip-done' : i === pos ? 'pip-active' : ''}`} />
           ))}
@@ -102,10 +135,10 @@ export function ModeChart({ onBack, meta }) {
     >
       {done ? (
         <div className="panel finished">
-          <div className="finished-title">All seven modes complete</div>
-          <p>You've filled in every row of the chart. Go again with a fresh random order?</p>
+          <div className="finished-title">{t('allSevenDone')}</div>
+          <p>{t('allSevenDoneSub')}</p>
           <button className="btn btn-primary" onClick={restart}>
-            ↻ Start the chart again
+            ↻ {t('startChartAgain')}
           </button>
         </div>
       ) : (
@@ -114,7 +147,7 @@ export function ModeChart({ onBack, meta }) {
           active={active}
           onRetry={() => setRound((r) => r + 1)}
           onContinue={next}
-          continueLabel={pos + 1 >= queue.length ? 'Finish' : 'Next mode'}
+          continueLabel={pos + 1 >= queue.length ? t('finish') : t('nextMode')}
         />
       )}
     </ExerciseShell>
@@ -122,6 +155,7 @@ export function ModeChart({ onBack, meta }) {
 }
 
 function ChartBoard({ active, onRetry, onContinue, continueLabel }) {
+  const { lang, t } = useLang()
   const [reveal, setReveal] = useState(false)
   const { board, results, score } = useFormulaBoard(active)
   return (
@@ -129,7 +163,7 @@ function ChartBoard({ active, onRetry, onContinue, continueLabel }) {
       <div className="workspace mode-workspace">
         <div className="panel chart mode-chart">
           <div className="chart-grid cols-mode">
-            <div className="chart-head">Mode</div>
+            <div className="chart-head">{t('headMode')}</div>
             {DEGREES.map((d) => (
               <div className="chart-head center" key={d}>
                 {d}
@@ -140,8 +174,8 @@ function ChartBoard({ active, onRetry, onContinue, continueLabel }) {
                 <div className="mode-row is-active" key={m.name}>
                   <div className="mode-name">
                     <span className="brightness" style={{ '--b': 1 - mi / 6 }} />
-                    {m.name}
-                    <span className="your-turn">your turn</span>
+                    {modeName(m.name, lang)}
+                    <span className="your-turn">{t('yourTurn')}</span>
                   </div>
                   <FormulaSlots board={board} modeIndex={mi} results={results} reveal={reveal} />
                 </div>
@@ -149,7 +183,7 @@ function ChartBoard({ active, onRetry, onContinue, continueLabel }) {
                 <div className="mode-row" key={m.name}>
                   <div className="mode-name">
                     <span className="brightness" style={{ '--b': 1 - mi / 6 }} />
-                    {m.name}
+                    {modeName(m.name, lang)}
                   </div>
                   {m.formula.map((v, i) => (
                     <div className="formula-cell" key={i} style={{ '--chip-color': intervalColor(v) }}>
@@ -188,18 +222,31 @@ export function ModeSingle({ onBack, meta }) {
     setMode(m)
     setRound((r) => r + 1)
   }
-  const instructions = (
-    <ol>
-      <li>
-        You're given the name of <strong>one mode</strong> — no chart to lean on this time. Build its formula from
-        memory.
-      </li>
-      {formulaSteps}
-      <li>
-        Press <strong>Submit</strong> to check, then <strong>Next mode</strong> for a new one.
-      </li>
-    </ol>
-  )
+  const { lang } = useLang()
+  const instructions =
+    lang === 'es' ? (
+      <ol>
+        <li>
+          Se te da el nombre de <strong>un modo</strong>, esta vez sin tabla en la que apoyarte. Construye su fórmula
+          de memoria.
+        </li>
+        {FORMULA_STEPS.es}
+        <li>
+          Pulsa <strong>Enviar</strong> para comprobar y después <strong>Siguiente modo</strong> para otro.
+        </li>
+      </ol>
+    ) : (
+      <ol>
+        <li>
+          You're given the name of <strong>one mode</strong> — no chart to lean on this time. Build its formula from
+          memory.
+        </li>
+        {FORMULA_STEPS.en}
+        <li>
+          Press <strong>Submit</strong> to check, then <strong>Next mode</strong> for a new one.
+        </li>
+      </ol>
+    )
   return (
     <ExerciseShell {...meta} onBack={onBack} instructions={instructions}>
       <SingleBoard key={`${mode}-${round}`} mode={mode} onRetry={() => setRound((r) => r + 1)} onContinue={nextMode} />
@@ -208,14 +255,15 @@ export function ModeSingle({ onBack, meta }) {
 }
 
 function SingleBoard({ mode, onRetry, onContinue }) {
+  const { lang, t } = useLang()
   const [reveal, setReveal] = useState(false)
   const { board, results, score } = useFormulaBoard(mode)
   return (
     <DndProvider onDrop={board.handleDrop} disabled={board.submitted}>
       <div className="workspace mode-workspace">
         <div className="panel single-mode">
-          <div className="panel-label">Complete the formula for</div>
-          <div className="single-mode-name">{MODES[mode].name}</div>
+          <div className="panel-label">{t('completeFormulaFor')}</div>
+          <div className="single-mode-name">{modeName(MODES[mode].name, lang)}</div>
           <div className="single-mode-slots">
             <FormulaSlots board={board} modeIndex={mode} results={results} reveal={reveal} />
           </div>
@@ -227,7 +275,7 @@ function SingleBoard({ mode, onRetry, onContinue }) {
         score={score}
         onRetry={onRetry}
         onContinue={onContinue}
-        continueLabel="Next mode"
+        continueLabel={t('nextMode')}
         reveal={reveal}
         onToggleReveal={() => setReveal((v) => !v)}
       />

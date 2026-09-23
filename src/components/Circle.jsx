@@ -1,5 +1,6 @@
 import { Chip, DropZone } from './dnd.jsx'
 import { CIRCLE_ORDER, INTERVAL_LABELS, intervalColor } from '../theory.js'
+import { useLang } from '../i18n.jsx'
 
 /** Lays out 12 nodes clockwise around a ring, starting at 12 o'clock. */
 export function CircleLayout({ renderNode, center, className = '' }) {
@@ -49,22 +50,28 @@ export function CircleLayout({ renderNode, center, className = '' }) {
 
 /** The circle of fifths as a palette of interval tiles that never run out. */
 export function CirclePalette() {
+  const { t } = useLang()
   return (
     <DropZone id="bank" className="panel circle-panel">
-      <div className="panel-label">Circle of fifths — drag from here</div>
+      <div className="panel-label">{t('circleDragFrom')}</div>
       <CircleLayout
         renderNode={(i) => {
           const v = CIRCLE_ORDER[i]
           return <Chip payload={{ itemId: v, fromSlot: null }} label={INTERVAL_LABELS[v]} color={intervalColor(v)} />
         }}
-        center={
-          <>
-            <span className="circle-center-title">5ths</span>
-            <span className="circle-center-sub">clockwise ↻</span>
-          </>
-        }
+        center={<CircleCenter />}
       />
     </DropZone>
+  )
+}
+
+export function CircleCenter() {
+  const { t } = useLang()
+  return (
+    <>
+      <span className="circle-center-title">{t('fifths')}</span>
+      <span className="circle-center-sub">{t('clockwise')}</span>
+    </>
   )
 }
 

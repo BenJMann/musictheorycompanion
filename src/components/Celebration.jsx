@@ -1,13 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { useLang } from '../i18n.jsx'
 
 const NEON = ['#00e5ff', '#ff2bd6', '#b6ff3b', '#ffb020', '#8b5cff', '#ff4d6d']
 
 const MESSAGES = {
-  perfect: { title: 'PERFECT!', sub: 'Every single answer right. Flawless mix.' },
-  allwrong: {
-    title: 'ALL WRONG — AND THAT RULES!',
-    sub: "Zero right means you're still in there trying. That's exactly how learning sounds. Hit Try again!",
-  },
+  perfect: { title: 'perfectTitle', sub: 'perfectSub' },
+  allwrong: { title: 'allWrongTitle', sub: 'allWrongSub' },
 }
 
 /**
@@ -15,6 +13,7 @@ const MESSAGES = {
  * "allwrong" gets an even brighter one: rainbow strobe, fireworks and more of everything.
  */
 export default function Celebration({ kind, onDone }) {
+  const { t } = useLang()
   const canvasRef = useRef(null)
   const bright = kind === 'allwrong'
   const duration = bright ? 5200 : 4000
@@ -136,9 +135,9 @@ export default function Celebration({ kind, onDone }) {
       <div className="celebration-flash" />
       <canvas ref={canvasRef} className="celebration-canvas" />
       <div className="celebration-text">
-        <div className="celebration-title">{msg.title}</div>
-        <div className="celebration-sub">{msg.sub}</div>
-        <div className="celebration-dismiss">click anywhere to close</div>
+        <div className="celebration-title">{t(msg.title)}</div>
+        <div className="celebration-sub">{t(msg.sub)}</div>
+        <div className="celebration-dismiss">{t('clickToClose')}</div>
       </div>
     </div>
   )

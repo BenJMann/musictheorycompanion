@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import Celebration from './Celebration.jsx'
+import { useLang } from '../i18n.jsx'
 
 export function ExerciseShell({ title, block, accent, instructions, toolbar, onBack, children }) {
+  const { t } = useLang()
   return (
     <div className="exercise" style={{ '--accent': accent }}>
       <header className="exercise-header">
         <button className="btn btn-ghost back-btn" onClick={onBack}>
-          <span aria-hidden>←</span> Exercises
+          <span aria-hidden>←</span> {t('backToExercises')}
         </button>
         <div className="exercise-title">
           <span className="block-tag">{block}</span>
@@ -16,12 +18,11 @@ export function ExerciseShell({ title, block, accent, instructions, toolbar, onB
       </header>
 
       <section className="instructions panel">
-        <div className="panel-label">How to do this exercise</div>
+        <div className="panel-label">{t('howTo')}</div>
         <div className="instructions-body">{instructions}</div>
         <p className="instructions-tip">
-          <strong>Placing tiles:</strong> drag a tile into a box — or click a tile, then click a box.{' '}
-          <strong>Fixing a mistake:</strong> click the <span className="kbd">×</span> on any filled box to
-          remove just that tile, drag it back to the bank, or drag it onto another box to swap.
+          <strong>{t('tipPlacingLabel')}</strong> {t('tipPlacing')} <strong>{t('tipFixingLabel')}</strong>{' '}
+          {t('tipFixingA')} <span className="kbd">×</span> {t('tipFixingB')}
         </p>
       </section>
 
@@ -32,6 +33,7 @@ export function ExerciseShell({ title, block, accent, instructions, toolbar, onB
 
 /** Submit / Clear before checking; score, retry and continue afterwards. */
 export function ActionBar({ board, score, onRetry, onContinue, continueLabel, reveal, onToggleReveal }) {
+  const { t } = useLang()
   const [celebrate, setCelebrate] = useState(null)
 
   useEffect(() => {
@@ -44,13 +46,13 @@ export function ActionBar({ board, score, onRetry, onContinue, continueLabel, re
     return (
       <div className="action-bar panel">
         <button className="btn btn-ghost" onClick={board.clearAll} disabled={!Object.keys(board.filled).length}>
-          Clear all
+          {t('clearAll')}
         </button>
         <span className="action-hint">
-          {board.complete ? 'Ready when you are.' : 'Fill every empty box to submit.'}
+          {board.complete ? t('ready') : t('fillAll')}
         </span>
         <button className="btn btn-primary" onClick={board.submit} disabled={!board.complete}>
-          Submit
+          {t('submit')}
         </button>
       </div>
     )
@@ -65,17 +67,17 @@ export function ActionBar({ board, score, onRetry, onContinue, continueLabel, re
             <div className="score-meter-fill" style={{ width: `${pct}%` }} />
           </div>
           <span className="score-text">
-            <strong>{score.correct}</strong> / {score.total} correct
+            <strong>{score.correct}</strong> {t('correctOf', { total: score.total })}
           </span>
         </div>
         <div className="action-buttons">
           {score.correct < score.total && onToggleReveal && (
             <button className="btn btn-ghost" onClick={onToggleReveal}>
-              {reveal ? 'Hide answers' : 'Show answers'}
+              {reveal ? t('hideAnswers') : t('showAnswers')}
             </button>
           )}
           <button className="btn btn-secondary" onClick={onRetry}>
-            ↻ Try again
+            ↻ {t('tryAgain')}
           </button>
           {onContinue && (
             <button className="btn btn-primary" onClick={onContinue}>
