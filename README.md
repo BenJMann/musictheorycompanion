@@ -19,6 +19,7 @@ npm run dev
 
 | Block | Exercise |
 | --- | --- |
+| 0 | How our notes were chosen: a six-part guided tour (octaves, Pythagoras' fifths, the spiral of fifths, the Pythagorean comma, equal temperament), with sound |
 | 1 | Major tone degrees and mode names (Way 1: semitones given · Way 2: degrees given) |
 | 1 | Semitones to chromatic intervals (Way 1: name the interval · Way 2: count the semitones) |
 | 2 | The Chromatic Scale (ascending with sharps, descending with flats) |

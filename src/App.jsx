@@ -4,10 +4,24 @@ import ChromaticIntervals from './exercises/ChromaticIntervals.jsx'
 import ChromaticScale from './exercises/ChromaticScale.jsx'
 import CircleOrder from './exercises/CircleOrder.jsx'
 import { ModeChart, ModeSingle } from './exercises/ModeFormulas.jsx'
+import TuningTour from './tour/TuningTour.jsx'
 import { COLORS } from './theory.js'
 import { LANGUAGES, LangContext, LanguageToggle, useLang } from './i18n.jsx'
 
 const BLOCKS = [
+  {
+    name: 'block0',
+    subtitle: 'block0Sub',
+    exercises: [
+      {
+        id: 'tuning-tour',
+        title: 'exTourTitle',
+        blurb: 'exTourBlurb',
+        accent: '#f4f1ea',
+        Component: TuningTour,
+      },
+    ],
+  },
   {
     name: 'block1',
     subtitle: 'block1Sub',

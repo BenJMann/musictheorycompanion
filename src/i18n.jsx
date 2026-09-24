@@ -14,6 +14,10 @@ const STRINGS = {
     chooseLanguageSub: 'You can switch at any time with the button at the top of the screen.',
     language: 'Language',
 
+    block0: 'Block 0',
+    block0Sub: 'Where our notes come from',
+    exTourTitle: 'How our notes were chosen: a guided tour',
+    exTourBlurb: 'From a single string to the circle of fifths: octaves, Pythagoras, the spiral of fifths and equal temperament.',
     block1: 'Block 1',
     block1Sub: 'Intervals & mode names',
     block2: 'Block 2',
@@ -111,6 +115,10 @@ const STRINGS = {
     chooseLanguageSub: 'Puedes cambiarlo en cualquier momento con el botón de la parte superior de la pantalla.',
     language: 'Idioma',
 
+    block0: 'Bloque 0',
+    block0Sub: 'De dónde vienen nuestras notas',
+    exTourTitle: 'Cómo se eligieron nuestras notas: una visita guiada',
+    exTourBlurb: 'De una sola cuerda al círculo de quintas: octavas, Pitágoras, la espiral de quintas y el temperamento igual.',
     block1: 'Bloque 1',
     block1Sub: 'Intervalos y nombres de los modos',
     block2: 'Bloque 2',

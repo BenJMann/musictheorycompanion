@@ -1,0 +1,948 @@
+/* ─────────  Guided tour: white, quiet and minimal, in contrast to the rest of the app  ───────── */
+
+.tour {
+  --paper: #ffffff;
+  --ink: #1b1e24;
+  --ink-2: #454b57;
+  --faint: #8a909b;
+  --rule: #e6e7ea;
+  --soft: #f5f6f8;
+  --accent: #3056be;
+  --comma: #c2562b;
+  --serif: 'EB Garamond', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow-y: auto;
+  background: var(--paper);
+  color: var(--ink);
+  color-scheme: light;
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.65;
+}
+.tour button {
+  font: inherit;
+  color: inherit;
+}
+
+/* ───────── Top bar ───────── */
+
+.tour-top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+}
+.tour-link {
+  white-space: nowrap;
+  border: 0;
+  background: none;
+  padding: 6px 0;
+  cursor: pointer;
+  color: var(--ink-2) !important;
+  font-size: 14px !important;
+  transition: color 0.15s;
+}
+.tour-link:hover {
+  color: var(--ink) !important;
+}
+.tour-link-small {
+  font-size: 13px !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--rule);
+}
+.tour-steps {
+  display: flex;
+  gap: 4px;
+}
+.tour-step {
+  width: 38px;
+  padding: 4px 0 6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--serif) !important;
+  font-size: 17px !important;
+  color: #c2c6cd !important;
+  position: relative;
+  transition: color 0.2s;
+}
+.tour-step::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--ink);
+  translate: -50% 0;
+  transition: width 0.3s ease;
+}
+.tour-step.is-past {
+  color: var(--ink-2) !important;
+}
+.tour-step.is-current {
+  color: var(--ink) !important;
+}
+.tour-step.is-current::after {
+  width: 18px;
+}
+.tour-step:hover {
+  color: var(--ink) !important;
+}
+
+.tour .lang-toggle {
+  background: var(--paper);
+  border-color: var(--rule);
+}
+.tour .lang-toggle button {
+  color: var(--faint);
+}
+.tour .lang-toggle button:hover:not(.is-active) {
+  color: var(--ink);
+}
+.tour .lang-toggle button.is-active {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: none;
+}
+
+/* ───────── Page ───────── */
+
+.tour-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 64px 24px 24px;
+  animation: tour-page-in 0.7s ease both;
+}
+.tour-page-spiral,
+.tour-page-comma,
+.tour-page-equal {
+  max-width: 1180px;
+}
+@keyframes tour-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+.tour-kicker {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.tour-title {
+  margin: 0 0 36px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(38px, 5.5vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.tour-prose {
+  max-width: 64ch;
+}
+.tour-prose p {
+  margin: 0 0 1.1em;
+  font-size: 17.5px;
+  line-height: 1.72;
+  color: var(--ink-2);
+}
+.tour-prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.tour-prose em {
+  font-family: var(--serif);
+  font-size: 1.1em;
+}
+
+.tour-try {
+  max-width: 64ch;
+  margin: 36px 0 20px;
+  padding-left: 16px;
+  border-left: 2px solid var(--ink);
+  font-size: 16px;
+  color: var(--ink);
+}
+.tour-try-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 2px;
+}
+
+.tour-done {
+  max-width: 64ch;
+  margin: 16px 0;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: var(--soft);
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.45;
+  animation: tour-page-in 0.6s ease both;
+}
+.tour-done strong {
+  font-weight: 600;
+}
+
+.tour-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  min-height: 36px;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.tour-pips {
+  display: inline-flex;
+  gap: 6px;
+}
+.tour-pips span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid #c2c6cd;
+  transition: all 0.4s ease;
+}
+.tour-pips span.is-done {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.tour-pill {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 16px;
+  background: var(--ink);
+  color: #fff !important;
+  font-size: 14px !important;
+  cursor: pointer;
+  animation: tour-page-in 0.4s ease both;
+}
+.tour-pill:hover {
+  background: #000;
+}
+
+/* Listen buttons */
+.tour-listen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0 28px;
+}
+.tour-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+  cursor: pointer;
+  font-size: 14.5px !important;
+  color: var(--ink) !important;
+  transition: all 0.15s ease;
+}
+.tour-play:hover {
+  border-color: var(--ink);
+}
+.tour-play:active {
+  transform: scale(0.98);
+}
+.tour-play.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff !important;
+}
+.tour-play-icon {
+  width: 0;
+  height: 0;
+  border-left: 8px solid currentColor;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  margin-left: 3px;
+}
+.tour-stop-icon {
+  width: 9px;
+  height: 9px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+/* Figures */
+.tour-figure {
+  margin: 28px 0;
+}
+.tour-caption {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.tour-caption-hint {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-style: italic;
+  font-family: var(--serif);
+  font-size: 13px;
+}
+
+/* Two columns for the spiral pages */
+.tour-split {
+  display: grid;
+  gap: 24px;
+  margin-top: 8px;
+}
+@media (min-width: 980px) {
+  .tour-split {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+  .tour-split-text {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  }
+  .tour-split-main {
+    position: sticky;
+    top: 84px;
+  }
+  .tour-split-side .tour-try {
+    margin-top: 0;
+  }
+}
+
+/* Bottom navigation */
+.tour-nav {
+  max-width: 760px;
+  margin: 40px auto 0;
+  padding: 28px 24px 64px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.tour-page-spiral + .tour-nav,
+.tour-page-comma + .tour-nav,
+.tour-page-equal + .tour-nav {
+  max-width: 1180px;
+}
+.tour-next {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: right;
+  font-family: var(--serif) !important;
+  font-size: 24px !important;
+  line-height: 1.2;
+  color: var(--ink) !important;
+  padding: 0;
+}
+.tour-next small {
+  display: block;
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.tour-next span {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.tour-next:hover span {
+  transform: translateX(4px);
+}
+
+/* ───────── The monochord ───────── */
+
+.mono-readout {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  min-height: 60px;
+}
+.mono-note {
+  font-family: var(--serif);
+  font-size: 46px;
+  line-height: 1;
+  min-width: 1.2em;
+  animation: mono-note-in 0.35s ease both;
+}
+@keyframes mono-note-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.mono-meta {
+  display: inline-flex;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.mono-dot {
+  color: #c2c6cd;
+}
+.mono-svg,
+.target-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.mono-board {
+  stroke: var(--rule);
+  stroke-width: 2;
+}
+.mono-tick line {
+  stroke: #c9ccd2;
+  stroke-width: 1.2;
+}
+.mono-tick text {
+  fill: var(--faint);
+  font-family: var(--serif);
+  font-size: 16px;
+  text-anchor: middle;
+}
+.mono-divisions path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  animation: mono-div 1.5s ease both;
+}
+@keyframes mono-div {
+  0% {
+    opacity: 0;
+  }
+  18%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.mono-nut {
+  fill: var(--ink);
+}
+.mono-end {
+  fill: #b9bdc5;
+}
+.mono-rest {
+  stroke: #d8dbe0;
+  stroke-width: 1.4;
+}
+.mono-string {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.mono-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+.mono-bridge path {
+  fill: var(--ink);
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.mono-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+.tour-ctl {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 10px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--paper);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.tour-ctl:hover:not(:disabled) {
+  border-color: var(--ink);
+  box-shadow: 0 4px 14px rgba(20, 24, 32, 0.06);
+}
+.tour-ctl:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.tour-ctl:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.tour-ctl-glyph {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--soft);
+  font-family: var(--serif);
+  font-size: 19px;
+}
+.tour-ctl-third .tour-ctl-glyph {
+  background: color-mix(in srgb, var(--accent) 10%, white);
+  color: var(--accent);
+}
+.tour-ctl-text {
+  display: grid;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.tour-ctl-text small {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--faint);
+}
+
+/* ───────── The octave target ───────── */
+
+.target-line {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.target-tick {
+  stroke: #cdd0d6;
+  stroke-width: 1;
+}
+.target-wall line {
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.target-wall.is-hit line {
+  animation: wall-hit 0.7s 0.45s ease both;
+}
+@keyframes wall-hit {
+  0% {
+    stroke: var(--ink);
+  }
+  15% {
+    stroke: var(--comma);
+    stroke-width: 5;
+  }
+  100% {
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+}
+.target-end {
+  fill: var(--ink);
+  font-family: var(--serif);
+  font-size: 23px;
+  text-anchor: middle;
+}
+.target-end.is-next {
+  fill: var(--faint);
+}
+.target-end-sub {
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.target-mark circle {
+  fill: var(--ink);
+}
+.target-mark text {
+  fill: var(--ink);
+  font-family: var(--serif);
+  font-size: 23px;
+  text-anchor: middle;
+}
+.target-mark.tone-start circle {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.target-mark.tone-start text {
+  fill: var(--faint);
+}
+.target-mark.tone-comma circle,
+.target-mark.tone-comma text {
+  fill: var(--comma);
+}
+.target-mark.is-fresh {
+  animation: mark-in 0.6s 0.62s ease both;
+}
+@keyframes mark-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A note thrown at the octave */
+.tok-body circle {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.tok-body text {
+  fill: var(--ink);
+  font-family: var(--serif);
+  font-size: 21px;
+  text-anchor: middle;
+}
+.tok-body {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tok-in {
+  animation: tok-drop 1.3s both;
+}
+.tok-in .tok-body {
+  animation: tok-dissolve 1.3s ease both;
+}
+@keyframes tok-drop {
+  0% {
+    transform: translate(var(--x), 6px);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  12% {
+    opacity: 1;
+  }
+  38% {
+    transform: translate(var(--x), var(--y));
+    animation-timing-function: ease-out;
+  }
+  46% {
+    transform: translate(var(--x), calc(var(--y) - 6px));
+    animation-timing-function: ease-in;
+  }
+  54%,
+  100% {
+    transform: translate(var(--x), var(--y));
+  }
+}
+@keyframes tok-dissolve {
+  0%,
+  52% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+    filter: blur(5px);
+  }
+}
+.tok-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tok-ring 1s 0.55s ease-out both;
+}
+@keyframes tok-ring {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  10% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(8);
+  }
+}
+.tok-spark {
+  fill: var(--accent);
+  animation: tok-spark 0.9s ease-out both;
+}
+@keyframes tok-spark {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  12% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy));
+  }
+}
+.tok-out {
+  animation: tok-bounce 1.35s both;
+}
+@keyframes tok-bounce {
+  0% {
+    transform: translate(calc(var(--wall) + var(--dir) * 150px), var(--y));
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.9, 0.7);
+  }
+  14% {
+    opacity: 1;
+  }
+  36% {
+    transform: translate(calc(var(--wall) + var(--dir) * 19px), var(--y));
+    animation-timing-function: cubic-bezier(0.1, 0.6, 0.4, 1);
+  }
+  58% {
+    transform: translate(calc(var(--wall) + var(--dir) * 72px), calc(var(--y) - 34px));
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  100% {
+    transform: translate(calc(var(--wall) + var(--dir) * 120px), calc(var(--y) + 80px));
+    opacity: 0;
+  }
+}
+.tok-out .tok-body circle {
+  stroke: var(--comma);
+}
+.tok-miss {
+  fill: var(--comma);
+  font-size: 18px;
+  font-style: italic;
+  font-family: var(--serif);
+  animation: tok-miss 1.9s 0.4s ease both;
+}
+@keyframes tok-miss {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  20%,
+  75% {
+    opacity: 1;
+  }
+}
+
+/* ───────── The spiral ───────── */
+
+.spiral {
+  margin: 0;
+}
+.spiral canvas {
+  display: block;
+  width: 100%;
+  touch-action: pan-y;
+}
+.spiral canvas.is-draggable {
+  cursor: grab;
+}
+.spiral canvas.is-draggable:active {
+  cursor: grabbing;
+}
+
+/* ───────── Part 5: the comma to scale ───────── */
+
+.comma-scale svg {
+  display: block;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  height: auto;
+}
+.comma-semitone {
+  stroke: #c2c6cd;
+  stroke-width: 1.5;
+}
+.comma-bar {
+  fill: var(--comma);
+}
+.comma-label {
+  fill: var(--faint);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-anchor: middle;
+}
+.comma-label.is-left {
+  text-anchor: start;
+  fill: var(--comma);
+}
+.comma-note {
+  fill: var(--ink);
+  font-family: var(--serif);
+  font-size: 20px;
+  text-anchor: middle;
+}
+.comma-note.is-comma {
+  fill: var(--comma);
+}
+.comma-note.is-faint {
+  fill: var(--faint);
+}
+
+/* ───────── Part 6: formula and tuning slider ───────── */
+
+.tour-formula {
+  margin: 8px 0 28px;
+  font-family: var(--serif);
+  font-size: 38px;
+  text-align: center;
+  max-width: 64ch;
+}
+.tour-formula sup {
+  font-size: 0.55em;
+  margin-left: 2px;
+}
+.tour-formula sub {
+  font-size: 0.5em;
+}
+
+.tune {
+  margin-top: 8px;
+}
+.tune input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+}
+.tune input[type='range']::-webkit-slider-runnable-track {
+  height: 2px;
+  background: linear-gradient(90deg, var(--ink) var(--fill), var(--rule) var(--fill));
+}
+.tune input[type='range']::-moz-range-track {
+  height: 2px;
+  background: linear-gradient(90deg, var(--ink) var(--fill), var(--rule) var(--fill));
+}
+.tune input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  box-shadow: 0 2px 8px rgba(20, 24, 32, 0.12);
+}
+.tune input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+}
+.tune-ends {
+  display: flex;
+  justify-content: space-between;
+}
+.tune-ends button {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  cursor: pointer;
+  font-size: 12px !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint) !important;
+}
+.tune-ends button:hover {
+  color: var(--ink) !important;
+}
+.tune-readout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 18px 0 0;
+}
+.tune-readout div {
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+.tune-readout dt {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.tune-readout dd {
+  margin: 2px 0 0;
+  font-family: var(--serif);
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s;
+}
+.tune-readout dd.is-zero {
+  color: var(--accent);
+}
+
+/* ───────── Small screens ───────── */
+
+@media (max-width: 600px) {
+  .tour-top {
+    padding: 10px 16px;
+    gap: 8px;
+  }
+  .tour-step {
+    width: 28px;
+  }
+  .tour .lang-icon {
+    display: none;
+  }
+  .tour-page {
+    padding: 36px 16px 16px;
+  }
+  .tour-nav {
+    padding: 24px 16px 48px;
+  }
+  .tour-prose p {
+    font-size: 16.5px;
+  }
+  .tour-next {
+    font-size: 20px !important;
+  }
+  .tour-ctl {
+    flex: 1 1 100%;
+  }
+  .tour-formula {
+    font-size: 30px;
+  }
+  /* The diagrams scale down with the screen, so their labels need to start bigger. */
+  .target-mark text,
+  .target-end {
+    font-size: 34px;
+  }
+  .target-end-sub {
+    display: none;
+  }
+  .tok-miss {
+    font-size: 28px;
+  }
+  .mono-tick text {
+    font-size: 26px;
+  }
+}
