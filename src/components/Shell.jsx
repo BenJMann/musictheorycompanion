@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Celebration from './Celebration.jsx'
 import { useLang } from '../i18n.jsx'
 
-export function ExerciseShell({ title, block, accent, instructions, toolbar, onBack, children }) {
+export function ExerciseShell({ title, block, accent, instructions, toolbar, onBack, tip = true, children }) {
   const { t } = useLang()
   return (
     <div className="exercise" style={{ '--accent': accent }}>
@@ -20,10 +20,12 @@ export function ExerciseShell({ title, block, accent, instructions, toolbar, onB
       <section className="instructions panel">
         <div className="panel-label">{t('howTo')}</div>
         <div className="instructions-body">{instructions}</div>
-        <p className="instructions-tip">
-          <strong>{t('tipPlacingLabel')}</strong> {t('tipPlacing')} <strong>{t('tipFixingLabel')}</strong>{' '}
-          {t('tipFixingA')} <span className="kbd">×</span> {t('tipFixingB')}
-        </p>
+        {tip && (
+          <p className="instructions-tip">
+            <strong>{t('tipPlacingLabel')}</strong> {t('tipPlacing')} <strong>{t('tipFixingLabel')}</strong>{' '}
+            {t('tipFixingA')} <span className="kbd">×</span> {t('tipFixingB')}
+          </p>
+        )}
       </section>
 
       {children}
@@ -32,12 +34,21 @@ export function ExerciseShell({ title, block, accent, instructions, toolbar, onB
 }
 
 /** Submit / Clear before checking; score, retry and continue afterwards. */
-export function ActionBar({ board, score, onRetry, onContinue, continueLabel, reveal, onToggleReveal }) {
+export function ActionBar({
+  board,
+  score,
+  onRetry,
+  onContinue,
+  continueLabel,
+  reveal,
+  onToggleReveal,
+  celebrate: celebrations = true,
+}) {
   const { t } = useLang()
   const [celebrate, setCelebrate] = useState(null)
 
   useEffect(() => {
-    if (!board.submitted || !score) return
+    if (!board.submitted || !score || !celebrations) return
     if (score.correct === score.total) setCelebrate('perfect')
     else if (score.correct === 0) setCelebrate('allwrong')
   }, [board.submitted]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -105,6 +116,21 @@ export function Segmented({ options, value, onChange }) {
           {o.label}
         </button>
       ))}
+    </div>
+  )
+}
+
+/** A row of pips showing progress through a round. */
+export function ProgressPips({ count, pos }) {
+  const { t } = useLang()
+  return (
+    <div className="progress-pips" title={t('progress')}>
+      {Array.from({ length: count }, (_, i) => (
+        <span key={i} className={`pip ${i < pos ? 'pip-done' : i === pos ? 'pip-active' : ''}`} />
+      ))}
+      <span className="progress-text">
+        {Math.min(pos + 1, count)} / {count}
+      </span>
     </div>
   )
 }

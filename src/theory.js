@@ -114,3 +114,46 @@ export const intervalName = (q, n, lang) => {
   const quality = n === 'Unison' && q === 'Perfect' ? 'justo' : QUALITY_ES[q].toLowerCase()
   return `${NUMBER_ES[n]} ${quality}`
 }
+
+/* ───────── Natural keys (Section 2) ───────── */
+
+// The seven keys whose root is a white key.
+export const NATURAL_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+const LETTER_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
+
+// Modes in scale-degree order: the mode built on degree 1, 2 … 7 of a major scale.
+export const DEGREE_MODES = MAJOR_SCALE.map((d) => d.mode)
+export const modeFormula = (name) => MODES.find((m) => m.name === name).formula
+
+/** The major scale on a natural root, correctly spelled: majorScale('E') → E F# G# A B C# D#. */
+export function majorScale(root) {
+  const start = LETTERS.indexOf(root)
+  return MAJOR_SCALE.map((d, k) => {
+    const letter = LETTERS[(start + k) % 7]
+    let diff = (((LETTER_PC[root] + d.semitones - LETTER_PC[letter]) % 12) + 12) % 12
+    if (diff > 6) diff -= 12
+    return letter + (diff === 1 ? '#' : diff === -1 ? 'b' : '')
+  })
+}
+
+/** The seven notes of a mode of a key: degree 0 is Ionian, 1 Dorian … */
+export const modeNotes = (key, degree) => {
+  const scale = majorScale(key)
+  return scale.map((_, k) => scale[(degree + k) % 7])
+}
+
+/** The C major scale rotated to start on a letter: 'E' → E F G A B C D. */
+export const whiteKeysFrom = (letter) => modeNotes('C', LETTERS.indexOf(letter))
+
+export const keyName = (key, lang) => (lang === 'es' ? `${prettyNote(key, lang)} mayor` : `${prettyNote(key, lang)} major`)
+
+// Every spelling a natural key needs, as a palette of note tiles.
+export const NOTE_PALETTE = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B']
+export const noteColor = (n) => (n[1] === '#' ? COLORS.magenta : n[1] === 'b' ? COLORS.violet : COLORS.cyan)
+
+// The circle of fifths by note name, clockwise from C at the top.
+export const CIRCLE_NOTES = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'Db', 'Ab', 'Eb', 'Bb', 'F']
+// The tritone position has two names, like the ♭5/♯4 interval.
+export const circleNoteLabel = (n, lang) =>
+  n === 'F#' ? `${prettyNote('F#', lang)}/${prettyNote('Gb', lang)}` : prettyNote(n, lang)

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { DndProvider } from '../components/dnd.jsx'
 import { Slot, shuffle, useBoard } from '../components/board.jsx'
-import { ActionBar, ExerciseShell } from '../components/Shell.jsx'
+import { ActionBar, ExerciseShell, ProgressPips } from '../components/Shell.jsx'
 import { CirclePalette, intervalItems } from '../components/Circle.jsx'
 import { intervalColor, intervalLabelAt, modeName, MODES } from '../theory.js'
 import { useLang } from '../i18n.jsx'
@@ -213,16 +213,18 @@ function ChartBoard({ active, onRetry, onContinue, continueLabel }) {
 /* ───────────── Exercise 3.3: one mode on its own ───────────── */
 
 export function ModeSingle({ onBack, meta }) {
-  const [mode, setMode] = useState(() => Math.floor(Math.random() * MODES.length))
+  // A round visits every mode once, in a fresh random order.
+  const [queue, setQueue] = useState(() => shuffle(MODES.map((_, i) => i)))
+  const [pos, setPos] = useState(0)
   const [round, setRound] = useState(0)
-  const nextMode = () => {
-    let m
-    do m = Math.floor(Math.random() * MODES.length)
-    while (m === mode)
-    setMode(m)
+  const done = pos >= queue.length
+  const next = () => setPos((p) => p + 1)
+  const restart = () => {
+    setQueue(shuffle(MODES.map((_, i) => i)))
+    setPos(0)
     setRound((r) => r + 1)
   }
-  const { lang } = useLang()
+  const { lang, t } = useLang()
   const instructions =
     lang === 'es' ? (
       <ol>
@@ -232,7 +234,8 @@ export function ModeSingle({ onBack, meta }) {
         </li>
         {FORMULA_STEPS.es}
         <li>
-          Pulsa <strong>Enviar</strong> para comprobar y después <strong>Siguiente modo</strong> para otro.
+          Pulsa <strong>Enviar</strong> para comprobar y después <strong>Siguiente modo</strong>. Cada ronda recorre
+          los siete modos una vez, en orden aleatorio.
         </li>
       </ol>
     ) : (
@@ -243,18 +246,40 @@ export function ModeSingle({ onBack, meta }) {
         </li>
         {FORMULA_STEPS.en}
         <li>
-          Press <strong>Submit</strong> to check, then <strong>Next mode</strong> for a new one.
+          Press <strong>Submit</strong> to check, then <strong>Next mode</strong>. Each round goes through all seven
+          modes once, in a random order.
         </li>
       </ol>
     )
   return (
-    <ExerciseShell {...meta} onBack={onBack} instructions={instructions}>
-      <SingleBoard key={`${mode}-${round}`} mode={mode} onRetry={() => setRound((r) => r + 1)} onContinue={nextMode} />
+    <ExerciseShell
+      {...meta}
+      onBack={onBack}
+      instructions={instructions}
+      toolbar={<ProgressPips count={queue.length} pos={pos} />}
+    >
+      {done ? (
+        <div className="panel finished">
+          <div className="finished-title">{t('allSevenDone')}</div>
+          <p>{t('allSevenFormulasSub')}</p>
+          <button className="btn btn-primary" onClick={restart}>
+            ↻ {t('goAgain')}
+          </button>
+        </div>
+      ) : (
+        <SingleBoard
+          key={`${queue[pos]}-${round}`}
+          mode={queue[pos]}
+          onRetry={() => setRound((r) => r + 1)}
+          onContinue={next}
+          continueLabel={pos + 1 >= queue.length ? t('finish') : t('nextMode')}
+        />
+      )}
     </ExerciseShell>
   )
 }
 
-function SingleBoard({ mode, onRetry, onContinue }) {
+function SingleBoard({ mode, onRetry, onContinue, continueLabel }) {
   const { lang, t } = useLang()
   const [reveal, setReveal] = useState(false)
   const { board, results, score } = useFormulaBoard(mode)
@@ -275,7 +300,7 @@ function SingleBoard({ mode, onRetry, onContinue }) {
         score={score}
         onRetry={onRetry}
         onContinue={onContinue}
-        continueLabel={t('nextMode')}
+        continueLabel={continueLabel}
         reveal={reveal}
         onToggleReveal={() => setReveal((v) => !v)}
       />
