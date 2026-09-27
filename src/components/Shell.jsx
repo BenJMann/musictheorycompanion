@@ -43,12 +43,15 @@ export function ActionBar({
   reveal,
   onToggleReveal,
   celebrate: celebrations = true,
+  onResult,
 }) {
   const { t } = useLang()
   const [celebrate, setCelebrate] = useState(null)
 
   useEffect(() => {
-    if (!board.submitted || !score || !celebrations) return
+    if (!board.submitted || !score) return
+    onResult?.(score.correct === score.total)
+    if (!celebrations) return
     if (score.correct === score.total) setCelebrate('perfect')
     else if (score.correct === 0) setCelebrate('allwrong')
   }, [board.submitted]) // eslint-disable-line react-hooks/exhaustive-deps

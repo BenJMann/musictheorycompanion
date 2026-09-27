@@ -4,7 +4,18 @@ import { Bank, Slot, shuffle, useBoard } from '../../components/board.jsx'
 import { ActionBar, ExerciseShell, ProgressPips } from '../../components/Shell.jsx'
 import { useLang } from '../../i18n.jsx'
 import { COLORS, DEGREE_MODES, keyName, majorScale, modeName, NATURAL_KEYS, noteColor, prettyNote } from '../../theory.js'
-import { KeyPicker, randomInt, RoundDone, useKeyedWays, useRoundQueue, WaysToolbar } from './common.jsx'
+import {
+  chromaticItems,
+  KeyCards,
+  KeyPicker,
+  randomInt,
+  RoundDone,
+  TallyBadge,
+  useKeyedWays,
+  useRoundQueue,
+  useTally,
+  WaysToolbar,
+} from './common.jsx'
 
 /*
  * Section 2 · Block 1. Two mirror-image exercises on the modes of a natural key:
@@ -25,14 +36,15 @@ const INSTRUCTIONS = {
       0: <li>First, choose the key you want to practise. Ways 1 and 2 both use it.</li>,
       1: (
         <li>
-          The notes of the key are listed on the left, in order. Drag the mode that starts on each note from the bank
+          The notes of the key are listed on the left, jumbled. Drag the mode that starts on each note from the bank
           into the <em>Mode</em> column, then press <strong>Submit</strong>.
         </li>
       ),
       2: (
         <li>
           One note of the key at a time. Drag the mode that starts on it into the box and press{' '}
-          <strong>Submit</strong>. A round goes through all seven notes in a random order.
+          <strong>Submit</strong>. A round goes through all seven notes in a random order; at the end you can pick a
+          new key, which starts again at Way 1.
         </li>
       ),
       3: (
@@ -53,14 +65,15 @@ const INSTRUCTIONS = {
       0: <li>Primero, elige la tonalidad que quieres practicar. Las formas 1 y 2 la usan.</li>,
       1: (
         <li>
-          Las notas de la tonalidad aparecen a la izquierda, en orden. Arrastra el modo que empieza en cada nota desde
-          el banco a la columna <em>Modo</em> y pulsa <strong>Enviar</strong>.
+          Las notas de la tonalidad aparecen a la izquierda, desordenadas. Arrastra el modo que empieza en cada nota
+          desde el banco a la columna <em>Modo</em> y pulsa <strong>Enviar</strong>.
         </li>
       ),
       2: (
         <li>
           Una nota de la tonalidad cada vez. Arrastra el modo que empieza en ella a la casilla y pulsa{' '}
-          <strong>Enviar</strong>. Cada ronda recorre las siete notas en orden aleatorio.
+          <strong>Enviar</strong>. Cada ronda recorre las siete notas en orden aleatorio; al final puedes elegir otra
+          tonalidad, que empieza de nuevo en la forma 1.
         </li>
       ),
       3: (
@@ -83,20 +96,26 @@ const INSTRUCTIONS = {
       0: <li>First, choose the key you want to practise. Ways 1 and 2 both use it.</li>,
       1: (
         <li>
-          The seven modes are listed on the left. Drag the note each one starts on from the bank into the{' '}
+          The seven modes are listed on the left, jumbled. Drag the note each one starts on from the bank into the{' '}
           <em>Root</em> column, then press <strong>Submit</strong>.
         </li>
       ),
       2: (
         <li>
           One mode at a time. Drag its root note into the box and press <strong>Submit</strong>. A round goes through
-          all seven modes in a random order.
+          all seven modes in a random order; at the end you can pick a new key, which starts again at Way 1.
         </li>
       ),
       3: (
         <li>
           A random natural key and a random mode every time. Drag the note of that key the mode starts on into the box
           and press <strong>Submit</strong>.
+        </li>
+      ),
+      4: (
+        <li>
+          Like Way 3, but the bank is the whole chromatic scale, with both the sharp and the flat name of each black
+          note. Pick the note with the spelling the key actually uses, then press <strong>Submit</strong>.
         </li>
       ),
     },
@@ -111,20 +130,26 @@ const INSTRUCTIONS = {
       0: <li>Primero, elige la tonalidad que quieres practicar. Las formas 1 y 2 la usan.</li>,
       1: (
         <li>
-          Los siete modos aparecen a la izquierda. Arrastra la nota en la que empieza cada uno desde el banco a la
-          columna <em>Tónica</em> y pulsa <strong>Enviar</strong>.
+          Los siete modos aparecen a la izquierda, desordenados. Arrastra la nota en la que empieza cada uno desde el
+          banco a la columna <em>Tónica</em> y pulsa <strong>Enviar</strong>.
         </li>
       ),
       2: (
         <li>
           Un modo cada vez. Arrastra su tónica a la casilla y pulsa <strong>Enviar</strong>. Cada ronda recorre los
-          siete modos en orden aleatorio.
+          siete modos en orden aleatorio; al final puedes elegir otra tonalidad, que empieza de nuevo en la forma 1.
         </li>
       ),
       3: (
         <li>
           Cada vez, una tonalidad natural al azar y un modo al azar. Arrastra la nota de esa tonalidad en la que
           empieza el modo a la casilla y pulsa <strong>Enviar</strong>.
+        </li>
+      ),
+      4: (
+        <li>
+          Como la forma 3, pero el banco es la escala cromática entera, con el nombre en sostenido y en bemol de cada
+          tecla negra. Elige la nota con la grafía que usa de verdad la tonalidad y pulsa <strong>Enviar</strong>.
         </li>
       ),
     },
@@ -136,12 +161,13 @@ export const RootsOfModes = (props) => <NaturalKeyExercise dir="root" {...props}
 
 function NaturalKeyExercise({ dir, onBack, meta }) {
   const { lang, t } = useLang()
-  const kw = useKeyedWays([3])
+  const kw = useKeyedWays([3, 4])
   const text = INSTRUCTIONS[dir][lang]
   const ways = [
     { value: 1, label: t('way1WholeKey') },
     { value: 2, label: t('way2OneAtATime') },
     { value: 3, label: t('way3RandomKey') },
+    ...(dir === 'root' ? [{ value: 4, label: t('way4Chromatic') }] : []),
   ]
   return (
     <ExerciseShell
@@ -160,9 +186,14 @@ function NaturalKeyExercise({ dir, onBack, meta }) {
       ) : kw.way === 1 ? (
         <WholeKey key={`${kw.key}-${kw.round}`} dir={dir} musicKey={kw.key} onRetry={kw.bump} onContinue={() => kw.setWay(2)} />
       ) : kw.way === 2 ? (
-        <OneAtATime key={`${kw.key}-${kw.round}`} dir={dir} musicKey={kw.key} />
+        <OneAtATime
+          key={`${kw.key}-${kw.round}`}
+          dir={dir}
+          musicKey={kw.key}
+          onNewKey={(k) => kw.start(k, 1)}
+        />
       ) : (
-        <RandomKey key={kw.round} dir={dir} />
+        <RandomKey key={kw.round} dir={dir} chromatic={kw.way === 4} />
       )}
     </ExerciseShell>
   )
@@ -197,6 +228,8 @@ function WholeKey({ dir, musicKey, onRetry, onContinue }) {
   const { lang, t } = useLang()
   const [reveal, setReveal] = useState(false)
   const slots = useMemo(() => DEGREE_MODES.map((_, k) => ({ id: `a${k}` })), [])
+  // Rows in a random order (and without degree numbers), so the answers can't be read off top to bottom.
+  const order = useMemo(() => shuffle(slots.map((_, k) => k)), [slots])
   const items = useMemo(() => answerTiles(dir, musicKey), [dir, musicKey])
   const board = useBoard(slots, items)
   const results = board.submitted
@@ -214,16 +247,15 @@ function WholeKey({ dir, musicKey, onRetry, onContinue }) {
           <div className="chart-grid cols-2">
             <div className="chart-head">{heads[0]}</div>
             <div className="chart-head">{heads[1]}</div>
-            {slots.map((s, k) => (
-              <Fragment key={s.id}>
+            {order.map((k) => (
+              <Fragment key={k}>
                 <div className="chart-given">
-                  <span className="degree-num">{k + 1}</span>
                   <Given dir={dir} value={givenOf(dir, musicKey, k)} />
                 </div>
                 <Slot
                   board={board}
-                  id={s.id}
-                  status={results[s.id]}
+                  id={slots[k].id}
+                  status={results[slots[k].id]}
                   placeholder={dir === 'mode' ? t('phMode') : t('phRoot')}
                   answer={labelOf(dir, answerOf(dir, musicKey, k), lang)}
                   reveal={reveal}
@@ -251,17 +283,27 @@ function WholeKey({ dir, musicKey, onRetry, onContinue }) {
 
 /* ───────── Ways 2 and 3: one question at a time ───────── */
 
-function OneAtATime({ dir, musicKey }) {
+function OneAtATime({ dir, musicKey, onNewKey }) {
   const { t } = useLang()
   const rq = useRoundQueue(7)
+  const tally = useTally()
   const [attempt, setAttempt] = useState(0)
   if (rq.done)
     return (
       <RoundDone
         title={t('roundDone')}
         sub={dir === 'mode' ? t('roundDoneNotesSub') : t('roundDoneModesSub')}
-        onAgain={rq.restart}
-      />
+        tally={tally}
+        onAgain={() => {
+          tally.reset()
+          rq.restart()
+        }}
+      >
+        <div className="finished-next">
+          <div className="panel-label">{t('orNewKey')}</div>
+          <KeyCards onChoose={onNewKey} current={musicKey} />
+        </div>
+      </RoundDone>
     )
   return (
     <Question
@@ -270,6 +312,8 @@ function OneAtATime({ dir, musicKey }) {
       musicKey={musicKey}
       degree={rq.current}
       progress={<ProgressPips count={7} pos={rq.pos} />}
+      tally={tally}
+      questionId={`${rq.round}-${rq.pos}`}
       onRetry={() => setAttempt((a) => a + 1)}
       onContinue={rq.next}
       continueLabel={rq.last ? t('finish') : t('nextQuestion')}
@@ -277,7 +321,7 @@ function OneAtATime({ dir, musicKey }) {
   )
 }
 
-function RandomKey({ dir }) {
+function RandomKey({ dir, chromatic }) {
   const { t } = useLang()
   const pick = (prev) => {
     let q
@@ -287,27 +331,34 @@ function RandomKey({ dir }) {
   }
   const [q, setQ] = useState(() => pick())
   const [n, setN] = useState(0)
+  const [attempt, setAttempt] = useState(0)
+  const tally = useTally()
   return (
     <Question
-      key={n}
+      key={`${n}-${attempt}`}
       dir={dir}
       musicKey={q.key}
       degree={q.degree}
-      onRetry={() => setN((x) => x + 1)}
+      chromatic={chromatic}
+      tally={tally}
+      questionId={n}
+      onRetry={() => setAttempt((a) => a + 1)}
       onContinue={() => {
         setQ(pick(q))
         setN((x) => x + 1)
+        setAttempt(0)
       }}
       continueLabel={t('nextQuestion')}
     />
   )
 }
 
-function Question({ dir, musicKey, degree, progress, onRetry, onContinue, continueLabel }) {
+function Question({ dir, musicKey, degree, chromatic, progress, tally, questionId, onRetry, onContinue, continueLabel }) {
   const { lang, t } = useLang()
   const [reveal, setReveal] = useState(false)
   const slots = useMemo(() => [{ id: 'ans' }], [])
-  const items = useMemo(() => answerTiles(dir, musicKey), [dir, musicKey])
+  // Way 4 offers the whole chromatic scale in order; otherwise the jumbled answers for this key.
+  const items = useMemo(() => (chromatic ? chromaticItems : answerTiles(dir, musicKey)), [chromatic, dir, musicKey])
   const board = useBoard(slots, items)
   const answer = answerOf(dir, musicKey, degree)
   const given = givenOf(dir, musicKey, degree)
@@ -324,6 +375,7 @@ function Question({ dir, musicKey, degree, progress, onRetry, onContinue, contin
           <div className="question-top">
             <span className="key-badge">{keyName(musicKey, lang)}</span>
             {progress}
+            <TallyBadge tally={tally} />
           </div>
           <div className="single-mode-name">
             {dir === 'mode' ? prettyNote(given, lang) : modeName(given, lang)}
@@ -341,13 +393,14 @@ function Question({ dir, musicKey, degree, progress, onRetry, onContinue, contin
           </div>
         </div>
         <div className="banks">
-          <Bank board={board} title={dir === 'mode' ? t('bankModes') : t('bankNotesOfKey')} />
+          <Bank board={board} title={chromatic ? t('bankChromatic') : dir === 'mode' ? t('bankModes') : t('bankNotesOfKey')} />
         </div>
       </div>
       <ActionBar
         board={board}
         score={{ correct: status ? 1 : 0, total: 1 }}
         celebrate={false}
+        onResult={(ok) => tally.record(questionId, ok)}
         onRetry={onRetry}
         onContinue={onContinue}
         continueLabel={continueLabel}

@@ -14,14 +14,16 @@ import {
   NATURAL_KEYS,
   noteColor,
   prettyNote,
-  whiteKeysFrom,
+  naturalsFrom,
 } from '../../theory.js'
-import { KeyPicker, KeySwitch } from './common.jsx'
+import { AccidentalGrid, KeyPicker, useKeyedWays, WaysToolbar } from './common.jsx'
 
 /*
  * Section 2 · Block 2. How to work out the notes of a natural major key:
- * the white keys starting on the root make a mode of C major; that mode's formula shows
+ * the natural keys starting on the root make a mode of C major; that mode's formula shows
  * exactly which notes to sharpen (or flatten) to turn it into the major scale.
+ *   Way 1 – preparation questions first, then work out the key
+ *   Way 2 – straight to working out the key
  */
 
 const DEGREES = ['1', '2', '3', '4', '5', '6', '7']
@@ -30,80 +32,115 @@ const KEYPAD = ['1', 'b2', '2', 'b3', '3', '4', 'tt', '5', 'b6', '6', 'b7', '7']
 const changeOf = (v) => (v.startsWith('b') ? 'up' : v === 'tt' ? 'down' : 'same')
 
 const INSTRUCTIONS = {
-  en: (
-    <ol>
-      <li>
+  en: {
+    intro: (
+      <>
         This is a trick for working out the notes of any <strong>natural major key</strong> (C, D, E, F, G, A or B
-        major) from things you already know: the white keys and the mode formulas.
-      </li>
+        major) from things you already know: the natural keys and the mode formulas.
+      </>
+    ),
+    0: <li>First, choose a key. Both ways use it.</li>,
+    1: (
+      <>
+        <li>
+          First come three <strong>preparation questions</strong>; press <strong>Check answers</strong> and get them
+          all right to move on.
+        </li>
+        <li>
+          Then, in <strong>Work out the key</strong>, read how the trick works and use your answers to turn the
+          natural-key notes into the major scale. <strong>Display answer</strong> animates the whole process for you.
+        </li>
+      </>
+    ),
+    2: (
       <li>
-        Choose a key. First come three <strong>preparation questions</strong>; press <strong>Check answers</strong>{' '}
-        and get them all right to move on.
-      </li>
-      <li>
-        Then, in <strong>Work out the key</strong>, use your answers to turn the white-key notes into the major scale.{' '}
+        No preparation: go straight to the last question and give each note a ♭, ♮ or ♯ to spell the major scale.{' '}
         <strong>Display answer</strong> animates the whole process for you.
       </li>
-    </ol>
-  ),
-  es: (
-    <ol>
-      <li>
+    ),
+  },
+  es: {
+    intro: (
+      <>
         Este es un truco para sacar las notas de cualquier <strong>tonalidad mayor natural</strong> (Do, Re, Mi, Fa,
-        Sol, La o Si mayor) a partir de cosas que ya sabes: las teclas blancas y las fórmulas de los modos.
-      </li>
+        Sol, La o Si mayor) a partir de cosas que ya sabes: las notas naturales y las fórmulas de los modos.
+      </>
+    ),
+    0: <li>Primero, elige una tonalidad. Las dos formas la usan.</li>,
+    1: (
+      <>
+        <li>
+          Primero hay tres <strong>preguntas de preparación</strong>; pulsa <strong>Comprobar respuestas</strong> y
+          acierta todas para continuar.
+        </li>
+        <li>
+          Después, en <strong>Saca la tonalidad</strong>, lee cómo funciona el truco y usa tus respuestas para
+          convertir las notas naturales en la escala mayor. <strong>Mostrar respuesta</strong> anima todo el proceso.
+        </li>
+      </>
+    ),
+    2: (
       <li>
-        Elige una tonalidad. Primero hay tres <strong>preguntas de preparación</strong>; pulsa{' '}
-        <strong>Comprobar respuestas</strong> y acierta todas para continuar.
+        Sin preparación: ve directamente a la última pregunta y dale a cada nota un ♭, ♮ o ♯ para escribir la escala
+        mayor. <strong>Mostrar respuesta</strong> anima todo el proceso.
       </li>
-      <li>
-        Después, en <strong>Saca la tonalidad</strong>, usa tus respuestas para convertir las notas de las teclas
-        blancas en la escala mayor. <strong>Mostrar respuesta</strong> anima todo el proceso.
-      </li>
-    </ol>
-  ),
+    ),
+  },
 }
 
 export default function WorkOutKey({ onBack, meta }) {
-  const { t } = useLang()
-  const [musicKey, setMusicKey] = useState(null)
-  const [stage, setStage] = useState('prep')
-  const [round, setRound] = useState(0)
-  const choose = (k) => {
-    setMusicKey(k)
-    setStage('prep')
-    setRound((r) => r + 1)
-  }
-  const { lang } = useLang()
+  const { lang, t } = useLang()
+  const kw = useKeyedWays()
+  const text = INSTRUCTIONS[lang]
+  const ways = [
+    { value: 1, label: t('way1WithPrep') },
+    { value: 2, label: t('way2StraightToKey') },
+  ]
   return (
     <ExerciseShell
       {...meta}
       onBack={onBack}
       tip={false}
-      instructions={INSTRUCTIONS[lang]}
-      toolbar={musicKey && <KeySwitch value={musicKey} onChange={choose} />}
-    >
-      {!musicKey ? (
-        <KeyPicker onChoose={choose} />
-      ) : (
+      instructions={
         <>
-          <div className="stepper">
-            <span className={`stepper-step ${stage === 'prep' ? 'is-active' : 'is-done'}`}>
-              <b>1</b> {t('prepQuestions')}
-            </span>
-            <span className="stepper-line" />
-            <span className={`stepper-step ${stage === 'work' ? 'is-active' : ''}`}>
-              <b>2</b> {t('workOutTheKey')}
-            </span>
-          </div>
-          {stage === 'prep' ? (
-            <Prep key={`${musicKey}-${round}`} musicKey={musicKey} onDone={() => setStage('work')} />
-          ) : (
-            <WorkOut key={`${musicKey}-${round}`} musicKey={musicKey} onAnother={() => setMusicKey(null)} />
-          )}
+          <p className="instructions-intro">{text.intro}</p>
+          <ol>{kw.key ? text[kw.way] : text[0]}</ol>
         </>
+      }
+      toolbar={<WaysToolbar kw={kw} ways={ways} />}
+    >
+      {!kw.key ? (
+        <KeyPicker onChoose={kw.setKey} />
+      ) : kw.way === 1 ? (
+        <WithPrep key={`${kw.key}-${kw.round}`} musicKey={kw.key} onAnother={() => kw.setKey(null)} />
+      ) : (
+        <WorkOut key={`${kw.key}-${kw.round}`} musicKey={kw.key} onAnother={() => kw.setKey(null)} />
       )}
     </ExerciseShell>
+  )
+}
+
+/** Way 1: the preparation questions, then work out the key with the answers alongside. */
+function WithPrep({ musicKey, onAnother }) {
+  const { t } = useLang()
+  const [stage, setStage] = useState('prep')
+  return (
+    <>
+      <div className="stepper">
+        <span className={`stepper-step ${stage === 'prep' ? 'is-active' : 'is-done'}`}>
+          <b>1</b> {t('prepQuestions')}
+        </span>
+        <span className="stepper-line" />
+        <span className={`stepper-step ${stage === 'work' ? 'is-active' : ''}`}>
+          <b>2</b> {t('workOutTheKey')}
+        </span>
+      </div>
+      {stage === 'prep' ? (
+        <Prep musicKey={musicKey} onDone={() => setStage('work')} />
+      ) : (
+        <WorkOut musicKey={musicKey} showPrep onAnother={onAnother} />
+      )}
+    </>
   )
 }
 
@@ -147,7 +184,7 @@ function Prep({ musicKey, onDone }) {
         <Carousel offset={offset} onChange={edit(setOffset)} locked={submitted} />
         {submitted && !q1 && reveal && (
           <p className="prep-answer">
-            → {whiteKeysFrom(musicKey).map((n) => prettyNote(n, lang)).join(' ')}
+            → {naturalsFrom(musicKey).map((n) => prettyNote(n, lang)).join(' ')}
           </p>
         )}
       </section>
@@ -322,11 +359,11 @@ function Carousel({ offset, onChange, locked }) {
 
 /* ───────── Work out the key ───────── */
 
-function WorkOut({ musicKey, onAnother }) {
+function WorkOut({ musicKey, showPrep = false, onAnother }) {
   const { lang, t } = useLang()
   const degree = NATURAL_KEYS.indexOf(musicKey)
   const mode = DEGREE_MODES[degree]
-  const letters = whiteKeysFrom(musicKey)
+  const letters = naturalsFrom(musicKey)
   const formula = modeFormula(mode)
   const major = majorScale(musicKey)
   const [acc, setAcc] = useState(() => letters.map(() => ''))
@@ -335,8 +372,8 @@ function WorkOut({ musicKey, onAnother }) {
   const [celebrate, setCelebrate] = useState(null)
   const top = useRef(null)
   useEffect(() => {
-    top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [])
+    if (showPrep) top.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const notes = letters.map((l, i) => l + acc[i])
   const right = notes.map((n, i) => n === major[i])
   const correct = right.filter(Boolean).length
@@ -355,69 +392,26 @@ function WorkOut({ musicKey, onAnother }) {
 
   return (
     <>
-      <section className="panel workout-explain" ref={top}>
-        <div className="panel-label">{t('yourPrepAnswers')}</div>
-        <div className="compare-grid">
-          <span className="compare-label">{t('rowWhiteKeysFrom', vars)}</span>
-          {letters.map((n, i) => (
-            <span key={i} className="compare-cell compare-note" style={{ '--chip-color': noteColor(n) }}>
-              {prettyNote(n, lang)}
-            </span>
-          ))}
-          <span className="compare-label">{t('rowFormulaOf', vars)}</span>
-          {formula.map((v, i) => (
-            <span
-              key={i}
-              className={`compare-cell ${changeOf(v) !== 'same' ? 'is-altered' : ''}`}
-              style={{ '--chip-color': intervalColor(v) }}
-            >
-              {intervalLabelAt(v, i)}
-            </span>
-          ))}
-          <span className="compare-label">{t('rowIonian')}</span>
-          {DEGREES.map((d) => (
-            <span key={d} className="compare-cell compare-target">
-              {d}
-            </span>
-          ))}
-        </div>
-        <Explanation vars={vars} />
-      </section>
+      {showPrep && (
+        <section className="panel workout-explain" ref={top}>
+          <Explanation vars={vars} />
+          <div className="panel-label">{t('yourPrepAnswers')}</div>
+          <PrepAnswers letters={letters} formula={formula} vars={vars} />
+        </section>
+      )}
 
       <section className="panel prep-q">
         <QuestionHead n={4} status={submitted ? correct === 7 : undefined}>
           {t('q4', vars)}
         </QuestionHead>
         <p className="prep-hint">{t('q4Hint')}</p>
-        <div className="acc-grid">
-          {letters.map((l, i) => (
-            <div
-              key={i}
-              className={`acc-col ${submitted ? (right[i] ? 'is-right' : 'is-wrong') : ''}`}
-              style={{ '--chip-color': noteColor(notes[i]) }}
-            >
-              <span className="acc-degree">{DEGREES[i]}</span>
-              <span className="acc-note">{prettyNote(notes[i], lang)}</span>
-              <div className="acc-btns">
-                {[
-                  ['b', '♭'],
-                  ['', '♮'],
-                  ['#', '♯'],
-                ].map(([a, sym]) => (
-                  <button
-                    key={sym}
-                    className={acc[i] === a ? 'is-active' : ''}
-                    disabled={submitted}
-                    onClick={() => setAcc((prev) => prev.map((x, j) => (j === i ? a : x)))}
-                  >
-                    {sym}
-                  </button>
-                ))}
-              </div>
-              {submitted && <span className={`mark ${right[i] ? 'mark-right' : 'mark-wrong'}`}>{right[i] ? '✓' : '✕'}</span>}
-            </div>
-          ))}
-        </div>
+        <AccidentalGrid
+          letters={letters}
+          acc={acc}
+          onChange={setAcc}
+          locked={submitted}
+          results={submitted ? right : undefined}
+        />
       </section>
 
       {showAnswer > 0 && <AnswerAnimation key={showAnswer} musicKey={musicKey} />}
@@ -457,6 +451,37 @@ function WorkOut({ musicKey, onAnother }) {
   )
 }
 
+/** The answers to prep questions 1 and 3, lined up against the major formula. */
+function PrepAnswers({ letters, formula, vars }) {
+  const { lang, t } = useLang()
+  return (
+    <div className="compare-grid">
+      <span className="compare-label">{t('rowNaturalsFrom', vars)}</span>
+      {letters.map((n, i) => (
+        <span key={i} className="compare-cell compare-note" style={{ '--chip-color': noteColor(n) }}>
+          {prettyNote(n, lang)}
+        </span>
+      ))}
+      <span className="compare-label">{t('rowFormulaOf', vars)}</span>
+      {formula.map((v, i) => (
+        <span
+          key={i}
+          className={`compare-cell ${changeOf(v) !== 'same' ? 'is-altered' : ''}`}
+          style={{ '--chip-color': intervalColor(v) }}
+        >
+          {intervalLabelAt(v, i)}
+        </span>
+      ))}
+      <span className="compare-label">{t('rowIonian')}</span>
+      {DEGREES.map((d) => (
+        <span key={d} className="compare-cell compare-target">
+          {d}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 function Explanation({ vars }) {
   const { lang } = useLang()
   if (lang === 'es')
@@ -465,7 +490,7 @@ function Explanation({ vars }) {
         <h3>Cómo funciona el truco</h3>
         <ol>
           <li>
-            Las teclas blancas empezando en {vars.root} ({vars.notes}) <em>son</em> el modo{' '}
+            Las notas naturales empezando en {vars.root} ({vars.notes}) <em>son</em> el modo{' '}
             <strong>
               {vars.root} {vars.mode.toLowerCase()}
             </strong>
@@ -503,7 +528,7 @@ function Explanation({ vars }) {
       <h3>How the trick works</h3>
       <ol>
         <li>
-          The white keys starting on {vars.root} ({vars.notes}) <em>are</em> the mode{' '}
+          The natural keys starting on {vars.root} ({vars.notes}) <em>are</em> the mode{' '}
           <strong>
             {vars.root} {vars.mode}
           </strong>
@@ -542,7 +567,7 @@ function AnswerAnimation({ musicKey }) {
   const { lang, t } = useLang()
   const ref = useRef(null)
   const degree = NATURAL_KEYS.indexOf(musicKey)
-  const letters = whiteKeysFrom(musicKey)
+  const letters = naturalsFrom(musicKey)
   const formula = modeFormula(DEGREE_MODES[degree])
   const major = majorScale(musicKey)
   const [step, setStep] = useState(-1)

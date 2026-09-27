@@ -117,8 +117,10 @@ export const intervalName = (q, n, lang) => {
 
 /* ───────── Natural keys (Section 2) ───────── */
 
-// The seven keys whose root is a white key.
+// The seven keys whose root is a natural note.
 export const NATURAL_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+// The same keys in circle-of-fifths order, for choosing a key.
+export const KEY_PICK_ORDER = ['F', 'C', 'G', 'D', 'A', 'E', 'B']
 const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
 const LETTER_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
 
@@ -144,11 +146,11 @@ export const modeNotes = (key, degree) => {
 }
 
 /** The C major scale rotated to start on a letter: 'E' → E F G A B C D. */
-export const whiteKeysFrom = (letter) => modeNotes('C', LETTERS.indexOf(letter))
+export const naturalsFrom = (letter) => modeNotes('C', LETTERS.indexOf(letter))
 
 export const keyName = (key, lang) => (lang === 'es' ? `${prettyNote(key, lang)} mayor` : `${prettyNote(key, lang)} major`)
 
-// Every spelling a natural key needs, as a palette of note tiles.
+// Every spelling a natural key needs, as a palette of note tiles (in chromatic order).
 export const NOTE_PALETTE = ['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B']
 export const noteColor = (n) => (n[1] === '#' ? COLORS.magenta : n[1] === 'b' ? COLORS.violet : COLORS.cyan)
 

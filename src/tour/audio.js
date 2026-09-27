@@ -62,11 +62,19 @@ export function playNote(freq, { when = 0, dur = 1.8, gain = 0.3, sustain = fals
   osc.connect(lp).connect(g).connect(master)
   osc.start(t)
   osc.stop(t + dur + 0.05)
+  // Returns a function that fades the note out early.
+  return () => {
+    const now = c.currentTime
+    g.gain.cancelScheduledValues(now)
+    g.gain.setTargetAtTime(0, now, 0.03)
+    osc.stop(Math.max(now, t) + 0.2)
+  }
 }
 
-/** Several notes one after another. */
+/** Several notes one after another. Returns a function that stops them all. */
 export function playSequence(freqs, { gap = 0.42, ...opts } = {}) {
-  freqs.forEach((f, i) => playNote(f, { when: i * gap, ...opts }))
+  const stops = freqs.map((f, i) => playNote(f, { when: i * gap, ...opts }))
+  return () => stops.forEach((stop) => stop?.())
 }
 
 /** Several notes at once, held so any beating can be heard. */

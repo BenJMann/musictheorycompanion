@@ -3,8 +3,28 @@ import { DndProvider } from '../../components/dnd.jsx'
 import { Bank, Slot, useBoard } from '../../components/board.jsx'
 import { ActionBar, ExerciseShell, ProgressPips } from '../../components/Shell.jsx'
 import { useLang } from '../../i18n.jsx'
-import { DEGREE_MODES, keyName, modeName, modeNotes, NATURAL_KEYS, noteColor, prettyNote } from '../../theory.js'
-import { KeyPicker, noteItems, randomInt, RoundDone, useKeyedWays, useRoundQueue, WaysToolbar } from './common.jsx'
+import {
+  DEGREE_MODES,
+  keyName,
+  majorScale,
+  modeName,
+  modeNotes,
+  NATURAL_KEYS,
+  noteColor,
+  prettyNote,
+} from '../../theory.js'
+import {
+  AccidentalGrid,
+  KeyPicker,
+  noteItems,
+  randomInt,
+  RoundDone,
+  TallyBadge,
+  useKeyedWays,
+  useRoundQueue,
+  useTally,
+  WaysToolbar,
+} from './common.jsx'
 
 /*
  * Section 2 · Block 3. The notes of every mode of the natural keys:
@@ -37,10 +57,16 @@ const INSTRUCTIONS = {
       </li>
     ),
     2: (
-      <li>
-        One mode of the key at a time, with no chart. Drag its seven notes into the boxes and press{' '}
-        <strong>Submit</strong>. A round goes through all seven modes in a random order.
-      </li>
+      <>
+        <li>
+          First, work out the notes of the key itself (its Ionian mode) with the ♭ ♮ ♯ buttons and press{' '}
+          <strong>Check</strong>. They stay on screen as your reference while you work on this key.
+        </li>
+        <li>
+          Then one mode of the key at a time, with no chart. Drag its seven notes into the boxes and press{' '}
+          <strong>Submit</strong>. A round goes through all seven modes in a random order.
+        </li>
+      </>
     ),
     3: (
       <li>
@@ -78,10 +104,16 @@ const INSTRUCTIONS = {
       </li>
     ),
     2: (
-      <li>
-        Un modo de la tonalidad cada vez, sin tabla. Arrastra sus siete notas a las casillas y pulsa{' '}
-        <strong>Enviar</strong>. Cada ronda recorre los siete modos en orden aleatorio.
-      </li>
+      <>
+        <li>
+          Primero, saca las notas de la propia tonalidad (su modo jónico) con los botones ♭ ♮ ♯ y pulsa{' '}
+          <strong>Comprobar</strong>. Se quedan en pantalla como referencia mientras trabajas con esta tonalidad.
+        </li>
+        <li>
+          Después, un modo de la tonalidad cada vez, sin tabla. Arrastra sus siete notas a las casillas y pulsa{' '}
+          <strong>Enviar</strong>. Cada ronda recorre los siete modos en orden aleatorio.
+        </li>
+      </>
     ),
     3: (
       <li>
@@ -169,25 +201,44 @@ const NoteBank = ({ board }) => {
 
 /* ───────── Way 1: the key's chart, one empty row at a time ───────── */
 
+/** A round of seven modes with a running score; restarting clears both. */
+function useScoredRound() {
+  const rq = useRoundQueue(7)
+  const tally = useTally()
+  const [attempt, setAttempt] = useState(0)
+  return {
+    rq,
+    tally,
+    attempt,
+    retry: () => setAttempt((a) => a + 1),
+    restart: () => {
+      tally.reset()
+      rq.restart()
+    },
+  }
+}
+
 function Chart({ musicKey }) {
   const { t } = useLang()
-  const rq = useRoundQueue(7)
-  const [attempt, setAttempt] = useState(0)
-  if (rq.done) return <RoundDone title={t('roundDone')} sub={t('roundDoneModesSub')} onAgain={rq.restart} />
+  const { rq, tally, attempt, retry, restart } = useScoredRound()
+  if (rq.done)
+    return <RoundDone title={t('roundDone')} sub={t('roundDoneModesSub')} tally={tally} onAgain={restart} />
   return (
     <ChartBoard
       key={`${rq.round}-${rq.pos}-${attempt}`}
       musicKey={musicKey}
       active={rq.current}
       progress={<ProgressPips count={7} pos={rq.pos} />}
-      onRetry={() => setAttempt((a) => a + 1)}
+      tally={tally}
+      questionId={`${rq.round}-${rq.pos}`}
+      onRetry={retry}
       onContinue={rq.next}
       continueLabel={rq.last ? t('finish') : t('nextMode')}
     />
   )
 }
 
-function ChartBoard({ musicKey, active, progress, onRetry, onContinue, continueLabel }) {
+function ChartBoard({ musicKey, active, progress, tally, questionId, onRetry, onContinue, continueLabel }) {
   const { lang, t } = useLang()
   const [reveal, setReveal] = useState(false)
   const answers = modeNotes(musicKey, active)
@@ -199,6 +250,7 @@ function ChartBoard({ musicKey, active, progress, onRetry, onContinue, continueL
           <div className="question-top">
             <span className="key-badge">{keyName(musicKey, lang)}</span>
             {progress}
+            <TallyBadge tally={tally} />
           </div>
           <div className="chart-grid cols-mode">
             <div className="chart-head">{t('headMode')}</div>
@@ -236,6 +288,7 @@ function ChartBoard({ musicKey, active, progress, onRetry, onContinue, continueL
       <ActionBar
         board={board}
         score={score}
+        onResult={(ok) => tally.record(questionId, ok)}
         onRetry={onRetry}
         onContinue={onContinue}
         continueLabel={continueLabel}
@@ -250,19 +303,105 @@ function ChartBoard({ musicKey, active, progress, onRetry, onContinue, continueL
 
 function OneMode({ musicKey }) {
   const { t } = useLang()
-  const rq = useRoundQueue(7)
-  const [attempt, setAttempt] = useState(0)
-  if (rq.done) return <RoundDone title={t('roundDone')} sub={t('roundDoneModesSub')} onAgain={rq.restart} />
+  const { rq, tally, attempt, retry, restart } = useScoredRound()
+  // Step 1 is spelling the key itself; it then stays on screen for reference.
+  const [keyDone, setKeyDone] = useState(false)
   return (
-    <ModeQuestion
-      key={`${rq.round}-${rq.pos}-${attempt}`}
-      musicKey={musicKey}
-      degree={rq.current}
-      progress={<ProgressPips count={7} pos={rq.pos} />}
-      onRetry={() => setAttempt((a) => a + 1)}
-      onContinue={rq.next}
-      continueLabel={rq.last ? t('finish') : t('nextMode')}
-    />
+    <>
+      <KeyReference musicKey={musicKey} done={keyDone} onDone={() => setKeyDone(true)} />
+      {!keyDone ? null : rq.done ? (
+        <RoundDone title={t('roundDone')} sub={t('roundDoneModesSub')} tally={tally} onAgain={restart} />
+      ) : (
+        <ModeQuestion
+          key={`${rq.round}-${rq.pos}-${attempt}`}
+          musicKey={musicKey}
+          degree={rq.current}
+          progress={<ProgressPips count={7} pos={rq.pos} />}
+          tally={tally}
+          questionId={`${rq.round}-${rq.pos}`}
+          onRetry={retry}
+          onContinue={rq.next}
+          continueLabel={rq.last ? t('finish') : t('nextMode')}
+        />
+      )}
+    </>
+  )
+}
+
+/** Work out the notes of the key (like "Working out a key", Q4); once right, it stays as a reference row. */
+function KeyReference({ musicKey, done, onDone }) {
+  const { lang, t } = useLang()
+  const major = majorScale(musicKey)
+  const letters = major.map((n) => n[0])
+  const [acc, setAcc] = useState(() => letters.map(() => ''))
+  const [checked, setChecked] = useState(false)
+  const right = letters.map((l, i) => l + acc[i] === major[i])
+  const allRight = right.every(Boolean)
+  const key = keyName(musicKey, lang)
+
+  if (done)
+    return (
+      <section className="panel key-reference">
+        <div className="panel-label">{t('keyReference', { key })}</div>
+        <div className="key-reference-notes">
+          {major.map((n, i) => (
+            <span key={i} className="compare-cell compare-note" style={{ '--chip-color': noteColor(n) }}>
+              {prettyNote(n, lang)}
+            </span>
+          ))}
+        </div>
+      </section>
+    )
+
+  return (
+    <>
+      <section className="panel key-builder">
+        <div className="panel-label">{t('keyFirstLabel')}</div>
+        <p className="question-prompt">{t('keyFirstPrompt', { key })}</p>
+        <AccidentalGrid
+          letters={letters}
+          acc={acc}
+          onChange={setAcc}
+          locked={checked}
+          results={checked ? right : undefined}
+        />
+      </section>
+      <div className={`action-bar panel ${checked ? 'is-result' : ''}`}>
+        {!checked ? (
+          <>
+            <span className="action-hint">{t('q4Ready')}</span>
+            <button className="btn btn-primary" onClick={() => setChecked(true)}>
+              {t('check')}
+            </button>
+          </>
+        ) : allRight ? (
+          <>
+            <span className="action-hint action-hint-good">{t('keyFirstRight', { key })}</span>
+            <button className="btn btn-primary" onClick={onDone}>
+              {t('onToTheModes')} →
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="action-hint">{t('keyFirstNotYet')}</span>
+            <div className="action-buttons">
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  setAcc(major.map((n) => n.slice(1)))
+                  setChecked(false)
+                }}
+              >
+                {t('showAnswers')}
+              </button>
+              <button className="btn btn-secondary" onClick={() => setChecked(false)}>
+                ↻ {t('fixAnswers')}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </>
   )
 }
 
@@ -276,16 +415,21 @@ function RandomQuestions({ single }) {
   }
   const [q, setQ] = useState(() => pick())
   const [n, setN] = useState(0)
+  const [attempt, setAttempt] = useState(0)
+  const tally = useTally()
   return (
     <ModeQuestion
-      key={n}
+      key={`${n}-${attempt}`}
       musicKey={q.key}
       degree={q.degree}
       step={q.step}
-      onRetry={() => setN((x) => x + 1)}
+      tally={tally}
+      questionId={n}
+      onRetry={() => setAttempt((a) => a + 1)}
       onContinue={() => {
         setQ(pick(q))
         setN((x) => x + 1)
+        setAttempt(0)
       }}
       continueLabel={t('nextQuestion')}
     />
@@ -293,7 +437,7 @@ function RandomQuestions({ single }) {
 }
 
 /** The notes of one mode — or, when step is set, just the note on that degree. */
-function ModeQuestion({ musicKey, degree, step = null, progress, onRetry, onContinue, continueLabel }) {
+function ModeQuestion({ musicKey, degree, step = null, progress, tally, questionId, onRetry, onContinue, continueLabel }) {
   const { lang, t } = useLang()
   const [reveal, setReveal] = useState(false)
   const notes = modeNotes(musicKey, degree)
@@ -307,6 +451,7 @@ function ModeQuestion({ musicKey, degree, step = null, progress, onRetry, onCont
           <div className="question-top">
             <span className="key-badge">{keyName(musicKey, lang)}</span>
             {progress}
+            <TallyBadge tally={tally} />
           </div>
           <div className="single-mode-name">{mode}</div>
           {step == null ? (
@@ -341,6 +486,7 @@ function ModeQuestion({ musicKey, degree, step = null, progress, onRetry, onCont
         board={board}
         score={score}
         celebrate={step == null}
+        onResult={(ok) => tally.record(questionId, ok)}
         onRetry={onRetry}
         onContinue={onContinue}
         continueLabel={continueLabel}
