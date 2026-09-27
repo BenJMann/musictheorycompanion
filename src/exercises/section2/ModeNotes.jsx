@@ -59,11 +59,11 @@ const INSTRUCTIONS = {
     2: (
       <>
         <li>
-          First, work out the notes of the key itself (its Ionian mode) with the ♭ ♮ ♯ buttons and press{' '}
-          <strong>Check</strong>. They stay on screen as your reference while you work on this key.
+          At the top, work out the notes of the key itself (its Ionian mode) with the ♭ ♮ ♯ buttons and press{' '}
+          <strong>Check</strong>. Once they are right they stay on screen as your reference for this key.
         </li>
         <li>
-          Then one mode of the key at a time, with no chart. Drag its seven notes into the boxes and press{' '}
+          Below it, one mode of the key at a time, with no chart. Drag its seven notes into the boxes and press{' '}
           <strong>Submit</strong>. A round goes through all seven modes in a random order.
         </li>
       </>
@@ -106,11 +106,11 @@ const INSTRUCTIONS = {
     2: (
       <>
         <li>
-          Primero, saca las notas de la propia tonalidad (su modo jónico) con los botones ♭ ♮ ♯ y pulsa{' '}
-          <strong>Comprobar</strong>. Se quedan en pantalla como referencia mientras trabajas con esta tonalidad.
+          Arriba, saca las notas de la propia tonalidad (su modo jónico) con los botones ♭ ♮ ♯ y pulsa{' '}
+          <strong>Comprobar</strong>. Cuando estén bien se quedan en pantalla como referencia para esta tonalidad.
         </li>
         <li>
-          Después, un modo de la tonalidad cada vez, sin tabla. Arrastra sus siete notas a las casillas y pulsa{' '}
+          Debajo, un modo de la tonalidad cada vez, sin tabla. Arrastra sus siete notas a las casillas y pulsa{' '}
           <strong>Enviar</strong>. Cada ronda recorre los siete modos en orden aleatorio.
         </li>
       </>
@@ -304,12 +304,11 @@ function ChartBoard({ musicKey, active, progress, tally, questionId, onRetry, on
 function OneMode({ musicKey }) {
   const { t } = useLang()
   const { rq, tally, attempt, retry, restart } = useScoredRound()
-  // Step 1 is spelling the key itself; it then stays on screen for reference.
-  const [keyDone, setKeyDone] = useState(false)
+  // The key's own notes sit above the mode question on the same screen, and stay for the whole key.
   return (
     <>
-      <KeyReference musicKey={musicKey} done={keyDone} onDone={() => setKeyDone(true)} />
-      {!keyDone ? null : rq.done ? (
+      <KeyReference musicKey={musicKey} />
+      {rq.done ? (
         <RoundDone title={t('roundDone')} sub={t('roundDoneModesSub')} tally={tally} onAgain={restart} />
       ) : (
         <ModeQuestion
@@ -328,18 +327,17 @@ function OneMode({ musicKey }) {
   )
 }
 
-/** Work out the notes of the key (like "Working out a key", Q4); once right, it stays as a reference row. */
-function KeyReference({ musicKey, done, onDone }) {
+/** Work out the notes of the key (like "Working out a key", Q4); once right, it shrinks to a reference row. */
+function KeyReference({ musicKey }) {
   const { lang, t } = useLang()
   const major = majorScale(musicKey)
   const letters = major.map((n) => n[0])
   const [acc, setAcc] = useState(() => letters.map(() => ''))
   const [checked, setChecked] = useState(false)
   const right = letters.map((l, i) => l + acc[i] === major[i])
-  const allRight = right.every(Boolean)
   const key = keyName(musicKey, lang)
 
-  if (done)
+  if (checked && right.every(Boolean))
     return (
       <section className="panel key-reference">
         <div className="panel-label">{t('keyReference', { key })}</div>
@@ -354,54 +352,34 @@ function KeyReference({ musicKey, done, onDone }) {
     )
 
   return (
-    <>
-      <section className="panel key-builder">
-        <div className="panel-label">{t('keyFirstLabel')}</div>
-        <p className="question-prompt">{t('keyFirstPrompt', { key })}</p>
-        <AccidentalGrid
-          letters={letters}
-          acc={acc}
-          onChange={setAcc}
-          locked={checked}
-          results={checked ? right : undefined}
-        />
-      </section>
-      <div className={`action-bar panel ${checked ? 'is-result' : ''}`}>
+    <section className="panel key-builder">
+      <div className="panel-label">{t('keyFirstLabel')}</div>
+      <p className="question-prompt">{t('keyFirstPrompt', { key })}</p>
+      <AccidentalGrid
+        letters={letters}
+        acc={acc}
+        onChange={setAcc}
+        locked={checked}
+        results={checked ? right : undefined}
+      />
+      <div className="key-builder-actions">
         {!checked ? (
-          <>
-            <span className="action-hint">{t('q4Ready')}</span>
-            <button className="btn btn-primary" onClick={() => setChecked(true)}>
-              {t('check')}
-            </button>
-          </>
-        ) : allRight ? (
-          <>
-            <span className="action-hint action-hint-good">{t('keyFirstRight', { key })}</span>
-            <button className="btn btn-primary" onClick={onDone}>
-              {t('onToTheModes')} →
-            </button>
-          </>
+          <button className="btn btn-secondary" onClick={() => setChecked(true)}>
+            {t('check')}
+          </button>
         ) : (
           <>
             <span className="action-hint">{t('keyFirstNotYet')}</span>
-            <div className="action-buttons">
-              <button
-                className="btn btn-ghost"
-                onClick={() => {
-                  setAcc(major.map((n) => n.slice(1)))
-                  setChecked(false)
-                }}
-              >
-                {t('showAnswers')}
-              </button>
-              <button className="btn btn-secondary" onClick={() => setChecked(false)}>
-                ↻ {t('fixAnswers')}
-              </button>
-            </div>
+            <button className="btn btn-ghost" onClick={() => setAcc(major.map((n) => n.slice(1)))}>
+              {t('showAnswers')}
+            </button>
+            <button className="btn btn-secondary" onClick={() => setChecked(false)}>
+              ↻ {t('fixAnswers')}
+            </button>
           </>
         )}
       </div>
-    </>
+    </section>
   )
 }
 

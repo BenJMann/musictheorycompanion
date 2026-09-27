@@ -2190,6 +2190,14 @@ button {
 .key-builder .question-prompt {
   margin: 0 0 14px;
 }
+.key-builder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
 .key-reference {
   display: flex;
   flex-wrap: wrap;
